@@ -20,7 +20,7 @@ We welcome contribution suggestions from the public to make this repository bett
 
 Notably, **this is not a repo for requesting additions or deletions of KEV entries**. The KEV is managed by CISA directly, and CISA's requirements for KEV addition are fairly strict, relying on the authority of [BOD 22-01](https://www.cisa.gov/news-events/directives/bod-22-01-reducing-significant-risk-known-exploited-vulnerabilities).
 
-Tips or suggestions about individual entries (beyond technical bug reports) should be directed via email to [KEV@cisa.dhs.gov](mailto:KEV@cisa.dhs.gov).
+Tips or suggestions about individual entries (beyond technical bug reports) should be directed via email to [KEV@mail.cisa.dhs.gov](mailto:KEV@mail.cisa.dhs.gov).
 
 ## Usage
 
