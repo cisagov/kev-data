@@ -1,9 +1,24 @@
 {
     "title": "CISA Catalog of Known Exploited Vulnerabilities",
-    "catalogVersion": "2025.04.04",
-    "dateReleased": "2025-04-04T18:55:10.6072Z",
-    "count": 1314,
+    "catalogVersion": "2025.04.07",
+    "dateReleased": "2025-04-07T18:01:08.3813Z",
+    "count": 1315,
     "vulnerabilities": [
+        {
+            "cveID": "CVE-2025-31161",
+            "vendorProject": "CrushFTP",
+            "product": "CrushFTP",
+            "vulnerabilityName": "CrushFTP Authentication Bypass Vulnerability",
+            "dateAdded": "2025-04-07",
+            "shortDescription": "CrushFTP contains an authentication bypass vulnerability in the HTTP authorization header that allows a remote unauthenticated attacker to authenticate to any known or guessable user account (e.g., crushadmin), potentially leading to a full compromise. ",
+            "requiredAction": "Apply mitigations per vendor instructions, follow applicable BOD 22-01 guidance for cloud services, or discontinue use of the product if mitigations are unavailable.",
+            "dueDate": "2025-04-28",
+            "knownRansomwareCampaignUse": "Unknown",
+            "notes": "https:\/\/www.crushftp.com\/crush11wiki\/Wiki.jsp?page=Update ; https:\/\/nvd.nist.gov\/vuln\/detail\/CVE-2025-31161",
+            "cwes": [
+                "CWE-305"
+            ]
+        },
         {
             "cveID": "CVE-2025-22457",
             "vendorProject": "Ivanti",
@@ -11,7 +26,7 @@
             "vulnerabilityName": "Ivanti Connect Secure, Policy Secure and ZTA Gateways Stack-Based Buffer Overflow Vulnerability",
             "dateAdded": "2025-04-04",
             "shortDescription": "Ivanti Connect Secure, Policy Secure and ZTA Gateways contains a stack-based buffer overflow vulnerability that allows a remote unauthenticated attacker to achieve remote code execution. ",
-            "requiredAction": "Apply mitigations per vendor instructions, follow applicable BOD 22-01 guidance for cloud services, or discontinue use of the product if mitigations are unavailable.",
+            "requiredAction": "Apply mitigations as set forth in the CISA instructions linked below.",
             "dueDate": "2025-04-11",
             "knownRansomwareCampaignUse": "Unknown",
             "notes": "CISA Mitigation Instructions: https:\/\/www.cisa.gov\/cisa-mitigation-instructions-cve-2025-22457 ; Additional References: https:\/\/forums.ivanti.com\/s\/article\/April-Security-Advisory-Ivanti-Connect-Secure-Policy-Secure-ZTA-Gateways-CVE-2025-22457) ; https:\/\/nvd.nist.gov\/vuln\/detail\/CVE-2025-22457",
@@ -463,7 +478,7 @@
             "shortDescription": "Microsoft Windows Win32k contains an improper resource shutdown or release vulnerability that allows for local, authenticated privilege escalation. An attacker who successfully exploited this vulnerability could run arbitrary code in kernel mode.",
             "requiredAction": "Apply mitigations per vendor instructions, follow applicable BOD 22-01 guidance for cloud services, or discontinue use of the product if mitigations are unavailable.",
             "dueDate": "2025-03-24",
-            "knownRansomwareCampaignUse": "Unknown",
+            "knownRansomwareCampaignUse": "Known",
             "notes": "https:\/\/msrc.microsoft.com\/update-guide\/en-US\/advisory\/CVE-2018-8639 ; https:\/\/nvd.nist.gov\/vuln\/detail\/CVE-2018-8639",
             "cwes": [
                 "CWE-404"
@@ -1746,7 +1761,7 @@
             "shortDescription": "Microsoft SharePoint contains a deserialization vulnerability that allows for remote code execution.",
             "requiredAction": "Apply mitigations per vendor instructions or discontinue use of the product if mitigations are unavailable.",
             "dueDate": "2024-11-12",
-            "knownRansomwareCampaignUse": "Unknown",
+            "knownRansomwareCampaignUse": "Known",
             "notes": "https:\/\/msrc.microsoft.com\/update-guide\/vulnerability\/CVE-2024-38094 ; https:\/\/nvd.nist.gov\/vuln\/detail\/CVE-2024-38094",
             "cwes": [
                 "CWE-502"
@@ -3119,7 +3134,7 @@
             "shortDescription": "Microsoft DWM Core Library contains a privilege escalation vulnerability that allows an attacker to gain SYSTEM privileges.",
             "requiredAction": "Apply mitigations per vendor instructions or discontinue use of the product if mitigations are unavailable.",
             "dueDate": "2024-06-04",
-            "knownRansomwareCampaignUse": "Unknown",
+            "knownRansomwareCampaignUse": "Known",
             "notes": "https:\/\/msrc.microsoft.com\/update-guide\/vulnerability\/CVE-2024-30051; https:\/\/nvd.nist.gov\/vuln\/detail\/CVE-2024-30051",
             "cwes": [
                 "CWE-122"
@@ -3237,7 +3252,7 @@
             "shortDescription": "Palo Alto Networks PAN-OS GlobalProtect feature contains a command injection vulnerability that allows an unauthenticated attacker to execute commands with root privileges on the firewall.",
             "requiredAction": "Apply mitigations per vendor instructions as they become available. Otherwise, users with vulnerable versions of affected devices should enable Threat Prevention IDs available from the vendor. See the vendor bulletin for more details and a patch release schedule.",
             "dueDate": "2024-04-19",
-            "knownRansomwareCampaignUse": "Unknown",
+            "knownRansomwareCampaignUse": "Known",
             "notes": "https:\/\/security.paloaltonetworks.com\/CVE-2024-3400 ;   https:\/\/nvd.nist.gov\/vuln\/detail\/CVE-2024-3400",
             "cwes": [
                 "CWE-20",
@@ -6724,7 +6739,7 @@
             "shortDescription": "Multiple versions of Fortinet FortiOS SSL-VPN contain a heap-based buffer overflow vulnerability which can allow an unauthenticated, remote attacker to execute arbitrary code or commands via specifically crafted requests.",
             "requiredAction": "Apply updates per vendor instructions.",
             "dueDate": "2023-01-03",
-            "knownRansomwareCampaignUse": "Unknown",
+            "knownRansomwareCampaignUse": "Known",
             "notes": "https:\/\/www.fortiguard.com\/psirt\/FG-IR-22-398;  https:\/\/nvd.nist.gov\/vuln\/detail\/CVE-2022-42475",
             "cwes": [
                 "CWE-197"
