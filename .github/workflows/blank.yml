@@ -1,0 +1,50 @@
+# .github/workflows/kev-sync.yml
+name: Sync KEV data
+
+on:
+  schedule:
+    - cron: "0 16 * * *"        # every day at 16:00 UTC
+  workflow_dispatch: {}         # allow manual runs
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch KEV CSV & JSON
+        run: |
+          set -euo pipefail
+          mkdir -p data
+          # Official CISA endpoints
+          CSV_URL="https://www.cisa.gov/sites/default/files/csv/known_exploited_vulnerabilities.csv"
+          JSON_URL="https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+
+          # Download fresh copies
+          curl -fsSL "$CSV_URL"  -o data/kev.csv.new
+          curl -fsSL "$JSON_URL" -o data/kev.json.new
+
+          # Sanity checks
+          test -s data/kev.csv.new
+          jq . data/kev.json.new >/dev/null
+
+          # Replace the old files
+          mv -f data/kev.csv.new  data/kev.csv
+          mv -f data/kev.json.new data/kev.json
+
+      - name: Commit if data changed
+        run: |
+          set -euo pipefail
+          git config user.name  "kev-sync-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/kev.csv data/kev.json || true
+          if ! git diff --cached --quiet; then
+            msg="chore: sync KEV data $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            git commit -m "$msg"
+            git push
+          else
+            echo "No changes detected."
+          fi
