@@ -14,33 +14,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1  # shallow checkout for speed
 
       - name: Fetch KEV CSV & JSON
         run: |
           set -euo pipefail
-          mkdir -p data
           # Official CISA endpoints
           CSV_URL="https://www.cisa.gov/sites/default/files/csv/known_exploited_vulnerabilities.csv"
           JSON_URL="https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 
-          # Download fresh copies
-          curl -fsSL "$CSV_URL"  -o data/kev.csv.new
-          curl -fsSL "$JSON_URL" -o data/kev.json.new
+          # Download directly to the final filenames (overwrite old files)
+          curl -fsSL "$CSV_URL"  -o known_exploited_vulnerabilities.csv
+          curl -fsSL "$JSON_URL" -o known_exploited_vulnerabilities.json
 
           # Sanity checks
-          test -s data/kev.csv.new
-          jq . data/kev.json.new >/dev/null
-
-          # Replace the old files
-          mv -f data/kev.csv.new  data/kev.csv
-          mv -f data/kev.json.new data/kev.json
+          test -s known_exploited_vulnerabilities.csv
+          jq . known_exploited_vulnerabilities.json >/dev/null
 
       - name: Commit if data changed
         run: |
           set -euo pipefail
           git config user.name  "kev-sync-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/kev.csv data/kev.json || true
+          git add known_exploited_vulnerabilities.csv known_exploited_vulnerabilities.json || true
           if ! git diff --cached --quiet; then
             msg="chore: sync KEV data $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             git commit -m "$msg"
