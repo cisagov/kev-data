@@ -3,7 +3,7 @@ name: Sync KEV data
 
 on:
   schedule:
-    - cron: "0 16 * * *"        # every day at 16:00 UTC
+    - cron: "0 21 * * *"        # every day at 16:00 ET
   workflow_dispatch: {}         # allow manual runs
 
 permissions:
