@@ -2,9 +2,13 @@
 name: Sync KEV data
 
 on:
+  # 4 PM Eastern:
+  #  - Mar–Oct ≈ 20:00 UTC
+  #  - Nov–Feb ≈ 21:00 UTC
   schedule:
-    - cron: "0 21 * * *"        # every day at 16:00 ET
-  workflow_dispatch: {}         # allow manual runs
+    - cron: "0 20 * 3-10 *"
+    - cron: "0 21 * 11,12,1,2 *"
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -13,35 +17,62 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 1  # shallow checkout for speed
+          fetch-depth: 1
 
-      - name: Fetch KEV CSV & JSON
+      - name: Fetch to temp and stage only if content changed
+        shell: bash
         run: |
           set -euo pipefail
-          # Official CISA endpoints
           CSV_URL="https://www.cisa.gov/sites/default/files/csv/known_exploited_vulnerabilities.csv"
           JSON_URL="https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 
-          # Download directly to the final filenames (overwrite old files)
-          curl -fsSL "$CSV_URL"  -o known_exploited_vulnerabilities.csv
-          curl -fsSL "$JSON_URL" -o known_exploited_vulnerabilities.json
+          CSV="known_exploited_vulnerabilities.csv"
+          JSON="known_exploited_vulnerabilities.json"
 
-          # Sanity checks
-          test -s known_exploited_vulnerabilities.csv
-          jq . known_exploited_vulnerabilities.json >/dev/null
+          # Download fresh to temp files
+          curl -fSLo "${CSV}.tmp"  "$CSV_URL"
+          curl -fSLo "${JSON}.tmp" "$JSON_URL"
 
-      - name: Commit if data changed
+          changed_files=""
+
+          # If file missing or bytes differ -> replace and mark changed
+          if [ ! -f "$CSV" ] || ! cmp -s "${CSV}.tmp" "$CSV"; then
+            mv -f "${CSV}.tmp" "$CSV"
+            changed_files="$changed_files $CSV"
+            echo "CSV changed → will commit."
+          else
+            rm -f "${CSV}.tmp"
+            echo "CSV unchanged."
+          fi
+
+          if [ ! -f "$JSON" ] || ! cmp -s "${JSON}.tmp" "$JSON"; then
+            mv -f "${JSON}.tmp" "$JSON"
+            changed_files="$changed_files $JSON"
+            echo "JSON changed → will commit."
+          else
+            rm -f "${JSON}.tmp"
+            echo "JSON unchanged."
+          fi
+
+          # Save list for next step
+          echo "$changed_files" > .changed_files
+
+      - name: Commit only changed files
+        shell: bash
         run: |
           set -euo pipefail
-          git config user.name  "kev-sync-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add known_exploited_vulnerabilities.csv known_exploited_vulnerabilities.json || true
-          if ! git diff --cached --quiet; then
-            msg="chore: sync KEV data $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            git commit -m "$msg"
+          changed_files="$(tr -s ' ' < .changed_files || true)"
+          if [ -n "$changed_files" ]; then
+            git config user.name  "kev-sync-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add $changed_files
+            echo "Staging:$changed_files"
+            git commit -m "chore: sync KEV data $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             git push
+            echo "Changes committed & pushed."
           else
-            echo "No changes detected."
+            echo "No content changes."
           fi
