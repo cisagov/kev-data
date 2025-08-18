@@ -6,8 +6,8 @@ on:
   #  - Mar–Oct ≈ 20:00 UTC
   #  - Nov–Feb ≈ 21:00 UTC
   schedule:
-    - cron: "0 20 * 3-10 *"
-    - cron: "0 21 * 11,12,1,2 *"
+    - cron: "0 17 * 3-10 *"
+    - cron: "0 18 * 11,12,1,2 *"
   workflow_dispatch: {}
 
 permissions:
