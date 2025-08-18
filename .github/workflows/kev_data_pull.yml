@@ -2,12 +2,9 @@
 name: Sync KEV data
 
 on:
-  # 4 PM Eastern:
-  #  - Mar–Oct ≈ 20:00 UTC
-  #  - Nov–Feb ≈ 21:00 UTC
+  # every hour
   schedule:
-    - cron: "0 17 * 3-10 *"
-    - cron: "0 18 * 11,12,1,2 *"
+    - cron: "0 * * * *" #everyhour, on the hours (UTC)
   workflow_dispatch: {}
 
 permissions:
