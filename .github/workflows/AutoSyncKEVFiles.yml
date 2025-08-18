@@ -1,0 +1,63 @@
+name: Update KEV Files
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs every hour on the hour
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+jobs:
+  update-kev-files:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Step 2: Set up environment
+    - name: Set up environment
+      run: |
+        mkdir -p kev-files
+        echo "Initializing environment"
+
+    # Step 3: Download files
+    - name: Download CSV file
+      run: curl -o kev-files/known_exploited_vulnerabilities.csv https://www.cisa.gov/sites/default/files/csv/known_exploited_vulnerabilities.csv
+
+    - name: Download JSON file
+      run: curl -o kev-files/known_exploited_vulnerabilities.json https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
+
+    # Step 4: Compare file hashes
+    - name: Check if files have been modified
+      id: check_modifications
+      run: |
+        # Generate SHA256 hashes for the downloaded files
+        sha256sum kev-files/known_exploited_vulnerabilities.csv > kev-files/known_exploited_vulnerabilities.csv.sha256
+        sha256sum kev-files/known_exploited_vulnerabilities.json > kev-files/known_exploited_vulnerabilities.json.sha256
+
+        # Compare hashes with the existing ones, if they exist
+        if  -f .last_hash_csv  &&  "$(cat .last_hash_csv)" == "$(cat kev-files/known_exploited_vulnerabilities.csv.sha256)"  && \
+            -f .last_hash_json  &&  "$(cat .last_hash_json)" == "$(cat kev-files/known_exploited_vulnerabilities.json.sha256)" ; then
+          echo "Files have not changed."
+          echo "changed=false" >> $GITHUB_ENV
+        else
+          echo "Files have changed."
+          echo "changed=true" >> $GITHUB_ENV
+        fi
+
+    # Step 5: Commit and push changes if files are modified
+    - name: Commit and push changes
+      if: env.changed == 'true'
+      run: |
+        # Save the new hashes for future comparisons
+        cp kev-files/known_exploited_vulnerabilities.csv.sha256 .last_hash_csv
+        cp kev-files/known_exploited_vulnerabilities.json.sha256 .last_hash_json
+
+        # Add and commit the updated files
+        git config user.name "github-actionsbot"
+        git config user.email "github-actionsbot@users.noreply.github.com"
+        git add kev-files/*
+        git commit -m "Add updated KEV files for $(date +'%Y-%m-%d')"
+
+        # Push changes to the repository
+        git push origin main
