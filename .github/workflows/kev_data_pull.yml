@@ -4,7 +4,7 @@ name: Sync KEV data
 on:
   # every hour
   schedule:
-    - cron: "0 * * * *" #everyhour, on the hours (UTC)
+    - cron: "0 12-23 * * *" # every hour 12:00-23:00 UTC (~7am-6pm or 8am-7pmET depending on DST)
   workflow_dispatch: {}
 
 permissions:
