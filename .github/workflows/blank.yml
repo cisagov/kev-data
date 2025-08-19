@@ -1,0 +1,72 @@
+name: Sync KEV data v2
+
+on:
+  schedule:
+    - cron: "0 * * * *" # every hour daily
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      CSV_URL: "https://www.cisa.gov/sites/default/files/csv/known_exploited_vulnerabilities.csv"
+      JSON_URL: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+      CSV_FILE: "known_exploited_vulnerabilities.csv"
+      JSON_FILE: "known_exploited_vulnerabilities.json"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Fetch to temp and stage only if content changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Downloading CSV from $CSV_URL..."
+          curl --retry 3 --retry-delay 5 -fSLo "${CSV_FILE}.tmp" "$CSV_URL"
+          echo "Downloading JSON from $JSON_URL..."
+          curl --retry 3 --retry-delay 5 -fSLo "${JSON_FILE}.tmp" "$JSON_URL"
+
+          changed_files=""
+
+          if [ ! -f "$CSV_FILE" ] || ! cmp -s "${CSV_FILE}.tmp" "$CSV_FILE"; then
+            mv -f "${CSV_FILE}.tmp" "$CSV_FILE"
+            changed_files="$changed_files $CSV_FILE"
+            echo "CSV changed → will commit."
+          else
+            rm -f "${CSV_FILE}.tmp"
+            echo "CSV unchanged."
+          fi
+
+          if [ ! -f "$JSON_FILE" ] || ! cmp -s "${JSON_FILE}.tmp" "$JSON_FILE"; then
+            mv -f "${JSON_FILE}.tmp" "$JSON_FILE"
+            changed_files="$changed_files $JSON_FILE"
+            echo "JSON changed → will commit."
+          else
+            rm -f "${JSON_FILE}.tmp"
+            echo "JSON unchanged."
+          fi
+
+          echo "$changed_files" > .changed_files
+
+      - name: Commit only changed files
+        shell: bash
+        run: |
+          set -euo pipefail
+          changed_files="$(tr -s ' ' < .changed_files || echo '')"
+          if [ -n "$changed_files" ]; then
+            git config user.name  "kev-sync-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add "$changed_files"
+            echo "Staging: $changed_files"
+            git commit -m "chore: sync KEV data $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            git push
+            echo "Changes committed & pushed."
+          else
+            echo "No content changes."
+          fi
