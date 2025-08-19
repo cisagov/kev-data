@@ -1,4 +1,4 @@
-name: Sync KEV data v2
+name: Sync_KEV_Data
 
 on:
   schedule:
