@@ -66,7 +66,7 @@ jobs:
             git config user.email "actions@users.noreply.github.com"
             git add $changed_files
             echo "Staging: $changed_files"
-            git commit -m "chore: sync KEV data $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            git commit -m "Add Updated KEV Files for $(date -u +'%Y-%m-%d')"
             git push
             echo "Changes committed & pushed."
           else
