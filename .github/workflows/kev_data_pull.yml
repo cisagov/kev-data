@@ -1,3 +1,9 @@
+If the secret key you stored in your GitHub repository settings is named CSMURRAY_KEY, you need to reference it correctly in your workflow. Here's the corrected line:
+
+API_KEY: ${{ secrets.CSMURRAY_KEY }} # Correct reference to your secret
+Updated Workflow
+Here’s how your workflow would look with the correct secret reference:
+
 name: Sync_KEV_Data
 
 on:
@@ -16,7 +22,7 @@ jobs:
       JSON_URL: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
       CSV_FILE: "known_exploited_vulnerabilities.csv"
       JSON_FILE: "known_exploited_vulnerabilities.json"
-      API_KEY: ${{ secrets.API_KEY }} # Using the secret here
+      API_KEY: ${{ secrets.CSMURRAY_KEY }} # Correctly using your secret
 
     steps:
       - name: Checkout
