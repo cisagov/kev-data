@@ -27,33 +27,36 @@ jobs:
       - name: Fetch to temp and stage only if content changed
         shell: bash
         run: |
-          set -euo pipefail
-          echo "Downloading CSV from $CSV_URL..."
-          curl --retry 3 --retry-delay 5 -fSLo "${CSV_FILE}.tmp" "$CSV_URL"
-          echo "Downloading JSON from $JSON_URL..."
-          curl --retry 3 --retry-delay 5 -fSLo "${JSON_FILE}.tmp" "$JSON_URL"
+         set -euo pipefail
+set -euo pipefail
+echo "Downloading CSV from $CSV_URL..."
+curl --retry 3 --retry-delay 5 -fSLo "${CSV_FILE}.tmp" "$CSV_URL"
+echo "Downloading JSON from $JSON_URL..."
+curl --retry 3 --retry-delay 5 -fSLo "${JSON_FILE}.tmp" "$JSON_URL"
 
-          changed_files=""
+changed_files=""
 
-          if  ! -f "$CSV_FILE"  || ! cmp -s "${CSV_FILE}.tmp" "$CSV_FILE"; then
-            mv -f "${CSV_FILE}.tmp" "$CSV_FILE"
-            changed_files="$changed_files $CSV_FILE"
-            echo "CSV changed → will commit."
-          else
-            rm -f "${CSV_FILE}.tmp"
-            echo "CSV unchanged."
-          fi
+echo "Comparing $CSV_FILE.tmp with $CSV_FILE:"
+if  ! -f "$CSV_FILE"  || ! diff -q "${CSV_FILE}.tmp" "$CSV_FILE"; then
+  mv -f "${CSV_FILE}.tmp" "$CSV_FILE"
+  changed_files="$changed_files $CSV_FILE"
+  echo "CSV changed → will commit."
+else
+  rm -f "${CSV_FILE}.tmp"
+  echo "CSV unchanged."
+fi
 
-          if  ! -f "$JSON_FILE"  || ! cmp -s "${JSON_FILE}.tmp" "$JSON_FILE"; then
-            mv -f "${JSON_FILE}.tmp" "$JSON_FILE"
-            changed_files="$changed_files $JSON_FILE"
-            echo "JSON changed → will commit."
-          else
-            rm -f "${JSON_FILE}.tmp"
-            echo "JSON unchanged."
-          fi
+echo "Comparing $JSON_FILE.tmp with $JSON_FILE:"
+if  ! -f "$JSON_FILE"  || ! diff -q "${JSON_FILE}.tmp" "$JSON_FILE"; then
+  mv -f "${JSON_FILE}.tmp" "$JSON_FILE"
+  changed_files="$changed_files $JSON_FILE"
+  echo "JSON changed → will commit."
+else
+  rm -f "${JSON_FILE}.tmp"
+  echo "JSON unchanged."
+fi
 
-          echo "$changed_files" > .changed_files
+echo "$changed_files" > .changed_files
 
       - name: Commit only changed files
         shell: bash
