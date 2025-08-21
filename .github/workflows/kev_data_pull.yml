@@ -16,6 +16,7 @@ jobs:
       JSON_URL: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
       CSV_FILE: "known_exploited_vulnerabilities.csv"
       JSON_FILE: "known_exploited_vulnerabilities.json"
+      API_KEY: ${{ secrets.API_KEY }} # Using the secret here
 
     steps:
       - name: Checkout
@@ -34,7 +35,7 @@ jobs:
 
           changed_files=""
 
-          if [ ! -f "$CSV_FILE" ] || ! cmp -s "${CSV_FILE}.tmp" "$CSV_FILE"; then
+          if  ! -f "$CSV_FILE"  || ! cmp -s "${CSV_FILE}.tmp" "$CSV_FILE"; then
             mv -f "${CSV_FILE}.tmp" "$CSV_FILE"
             changed_files="$changed_files $CSV_FILE"
             echo "CSV changed → will commit."
@@ -43,7 +44,7 @@ jobs:
             echo "CSV unchanged."
           fi
 
-          if [ ! -f "$JSON_FILE" ] || ! cmp -s "${JSON_FILE}.tmp" "$JSON_FILE"; then
+          if  ! -f "$JSON_FILE"  || ! cmp -s "${JSON_FILE}.tmp" "$JSON_FILE"; then
             mv -f "${JSON_FILE}.tmp" "$JSON_FILE"
             changed_files="$changed_files $JSON_FILE"
             echo "JSON changed → will commit."
@@ -59,7 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           changed_files="$(tr -s ' ' < .changed_files || echo '')"
-          if [ -n "$changed_files" ]; then
+          if  -n "$changed_files" ; then
             git config user.name  "kev-sync-bot"
             git config user.email "actions@users.noreply.github.com"
             git add "$changed_files"
