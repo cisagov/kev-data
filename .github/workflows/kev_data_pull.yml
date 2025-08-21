@@ -1,4 +1,4 @@
-name: Sync KEV data_TEST
+name: Sync KEV data
 
 on:
   schedule:
