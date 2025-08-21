@@ -1,4 +1,4 @@
-name: Sync_KEV_Data
+name: Sync KEV data_TEST
 
 on:
   schedule:
@@ -18,29 +18,23 @@ jobs:
       JSON_FILE: "known_exploited_vulnerabilities.json"
 
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      # Step 2: Download files with API key and compare them
       - name: Fetch to temp and stage only if content changed
         shell: bash
-        env:
-          API_KEY: ${{ secrets.CSMURRAY_KEY }} # Access the API key securely
         run: |
           set -euo pipefail
           echo "Downloading CSV from $CSV_URL..."
-          curl --retry 3 --retry-delay 5 -H "Authorization: Bearer $API_KEY" -fSLo "${CSV_FILE}.tmp" "$CSV_URL"
+          curl --retry 3 --retry-delay 5 -fSLo "${CSV_FILE}.tmp" "$CSV_URL"
           echo "Downloading JSON from $JSON_URL..."
-          curl --retry 3 --retry-delay 5 -H "Authorization: Bearer $API_KEY" -fSLo "${JSON_FILE}.tmp" "$JSON_URL"
+          curl --retry 3 --retry-delay 5 -fSLo "${JSON_FILE}.tmp" "$JSON_URL"
 
           changed_files=""
 
-          # Compare CSV file and stage if changed
-          echo "Comparing $CSV_FILE.tmp with $CSV_FILE:"
-          if  ! -f "$CSV_FILE"  || ! diff -q "${CSV_FILE}.tmp" "$CSV_FILE"; then
+          if [ ! -f "$CSV_FILE" ] || ! cmp -s "${CSV_FILE}.tmp" "$CSV_FILE"; then
             mv -f "${CSV_FILE}.tmp" "$CSV_FILE"
             changed_files="$changed_files $CSV_FILE"
             echo "CSV changed → will commit."
@@ -49,9 +43,7 @@ jobs:
             echo "CSV unchanged."
           fi
 
-          # Compare JSON file and stage if changed
-          echo "Comparing $JSON_FILE.tmp with $JSON_FILE:"
-          if  ! -f "$JSON_FILE"  || ! diff -q "${JSON_FILE}.tmp" "$JSON_FILE"; then
+          if [ ! -f "$JSON_FILE" ] || ! cmp -s "${JSON_FILE}.tmp" "$JSON_FILE"; then
             mv -f "${JSON_FILE}.tmp" "$JSON_FILE"
             changed_files="$changed_files $JSON_FILE"
             echo "JSON changed → will commit."
@@ -60,17 +52,17 @@ jobs:
             echo "JSON unchanged."
           fi
 
-          # Save the changed files list
-          echo "$changed_files" > .changed_files
+          echo "$changed_files" | xargs > .changed_files
+          echo "Changed files:"
+          cat .changed_files
 
-      # Step 3: Commit and push only changed files
       - name: Commit only changed files
         shell: bash
         run: |
           set -euo pipefail
-          changed_files="$(tr -s ' ' < .changed_files || echo '')"
-          if  -n "$changed_files" ; then
-            git config user.name "kev-sync-bot"
+          changed_files="$(tr -s ' ' < .changed_files | xargs || echo '')"
+          if [ -n "$changed_files" ]; then
+            git config user.name  "kev-sync-bot"
             git config user.email "actions@users.noreply.github.com"
             git add $changed_files
             echo "Staging: $changed_files"
