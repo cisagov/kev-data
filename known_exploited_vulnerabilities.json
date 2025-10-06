@@ -1,7 +1,7 @@
 {
     "title": "CISA Catalog of Known Exploited Vulnerabilities",
     "catalogVersion": "2025.10.06",
-    "dateReleased": "2025-10-06T17:05:34.8177Z",
+    "dateReleased": "2025-10-06T18:26:19.3458Z",
     "count": 1434,
     "vulnerabilities": [
         {
@@ -13,7 +13,7 @@
             "shortDescription": "Oracle E-Business Suite contains an unspecified vulnerability in the BI Publisher Integration component. The vulnerability allows unauthenticated attacker with network access via HTTP to compromise Oracle Concurrent Processing. Successful attacks can result in takeover of Oracle Concurrent Processing.",
             "requiredAction": "Apply mitigations per vendor instructions, follow applicable BOD 22-01 guidance for cloud services, or discontinue use of the product if mitigations are unavailable.",
             "dueDate": "2025-10-28",
-            "knownRansomwareCampaignUse": "Unknown",
+            "knownRansomwareCampaignUse": "Known",
             "notes": "https:\/\/www.oracle.com\/security-alerts\/alert-cve-2025-61882.html ; https:\/\/nvd.nist.gov\/vuln\/detail\/CVE-2025-61882",
             "cwes": []
         },
@@ -210,7 +210,7 @@
             "shortDescription": "Fortra GoAnywhere MFT contains a deserialization of untrusted data vulnerability allows an actor with a validly forged license response signature to deserialize an arbitrary actor-controlled object, possibly leading to command injection.",
             "requiredAction": "Apply mitigations per vendor instructions, follow applicable BOD 22-01 guidance for cloud services, or discontinue use of the product if mitigations are unavailable.",
             "dueDate": "2025-10-20",
-            "knownRansomwareCampaignUse": "Unknown",
+            "knownRansomwareCampaignUse": "Known",
             "notes": "https:\/\/www.fortra.com\/security\/advisories\/product-security\/fi-2025-012 ; https:\/\/nvd.nist.gov\/vuln\/detail\/CVE-2025-10035",
             "cwes": [
                 "CWE-502",
