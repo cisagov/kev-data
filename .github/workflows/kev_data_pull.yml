@@ -28,9 +28,9 @@ jobs:
         run: |
           set -euo pipefail
           echo "Downloading CSV from $CSV_URL..."
-          curl --retry 3 --retry-delay 5 connect-timeout 30 --max-time 60 -fSLo "${CSV_FILE}.tmp" "$CSV_URL"
+          curl --retry 3 --retry-delay 5 --connect-timeout 30 --max-time 60 -fSLo "${CSV_FILE}.tmp" "$CSV_URL"
           echo "Downloading JSON from $JSON_URL..."
-          curl --retry 3 --retry-delay 5 connect-timeout 30 --max-time 60 -fSLo "${JSON_FILE}.tmp" "$JSON_URL"
+          curl --retry 3 --retry-delay 5 --connect-timeout 30 --max-time 60 -fSLo "${JSON_FILE}.tmp" "$JSON_URL"
 
           changed_files=""
 
