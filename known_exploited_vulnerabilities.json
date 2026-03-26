@@ -1,7 +1,7 @@
 {
     "title": "CISA Catalog of Known Exploited Vulnerabilities",
     "catalogVersion": "2026.03.26",
-    "dateReleased": "2026-03-26T16:51:41.3781Z",
+    "dateReleased": "2026-03-26T17:17:20.2658Z",
     "count": 1553,
     "vulnerabilities": [
         {
@@ -87,7 +87,7 @@
             "product": "Multiple Products",
             "vulnerabilityName": "Apple Multiple Products Classic Buffer Overflow Vulnerability",
             "dateAdded": "2026-03-20",
-            "shortDescription": "Apple watchOS, iOS, iPadOS, macOS, visionOS, tvOS, and iPadOS contain a classic buffer overflow vulnerability which could allow a malicious application to cause unexpected system termination or write kernel memory.",
+            "shortDescription": "Apple watchOS, iOS, iPadOS, macOS, visionOS, and tvOS contain a classic buffer overflow vulnerability which could allow a malicious application to cause unexpected system termination or write kernel memory.",
             "requiredAction": "Apply mitigations per vendor instructions, follow applicable BOD 22-01 guidance for cloud services, or discontinue use of the product if mitigations are unavailable.",
             "dueDate": "2026-04-03",
             "knownRansomwareCampaignUse": "Unknown",
