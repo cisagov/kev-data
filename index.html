@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>KEV Updates – JSON & CSV (Unified)</title>
+  <title>KEV Updates – Unified + Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Favicon: professional shield icon (data URI). Replace with official asset anytime. -->
+  <!-- Favicon: shield-style professional icon (replace with official logo anytime). -->
   <link rel="icon" type="image/svg+xml"
         href='data:image/svg+xml;utf8,
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
@@ -20,9 +20,6 @@
           <circle cx="32" cy="26" r="6" fill="%230b5cad"/>
         </svg>' />
 
-  <!-- =========================== -->
-  <!--            CSS              -->
-  <!-- =========================== -->
   <style>
     :root {
       --bg: #ffffff;
@@ -39,6 +36,8 @@
       --admin: #8a6d1c;
       --csv: #0b5cad;
       --json: #2d7bd1;
+
+      --card-bg: #ffffff;
     }
     body.dark {
       --bg: #0f141a;
@@ -50,6 +49,7 @@
       --chip-bg: #0f253d;
       --csv: #58a6ff;
       --json: #8dbbff;
+      --card-bg: #0f141a;
     }
     * { box-sizing: border-box; }
     body {
@@ -80,13 +80,41 @@
     }
     .btn:hover { border-color: var(--accent); }
 
-    main { padding: 32px clamp(16px, 5vw, 48px); display: grid; gap: 28px; }
+    main { padding: 24px clamp(16px, 5vw, 48px); display: grid; gap: 24px; }
+
+    /* Dashboard cards */
+    .dash {
+      display: grid; gap: 12px;
+      grid-template-columns: repeat(5, minmax(180px, 1fr));
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .card h3 {
+      margin: 0 0 8px 0; font-size: 14px; color: var(--muted);
+    }
+    .nums {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    }
+    .num {
+      background: var(--row);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      font-size: 13px;
+    }
+    .num strong { font-size: 16px; display: block; }
+    .change-tags { margin-top: 8px; font-size: 12px; color: var(--muted); }
 
     section {
       border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg);
     }
     .section-header {
-      background: var(--row); padding: 16px 20px; border-bottom: 1px solid var(--border);
+      background: var(--row); padding: 12px 16px; border-bottom: 1px solid var(--border);
       display: flex; align-items: baseline; justify-content: space-between;
     }
     .updated { color: var(--muted); font-size: 13px; }
@@ -117,10 +145,16 @@
     details { margin-top: 8px; border-left: 3px solid var(--border); padding-left: 12px; }
     summary { cursor: pointer; color: var(--accent); }
     ul { margin: 8px 0 0 20px; }
-    footer {
-      padding: 24px clamp(16px, 5vw, 48px); color: var(--muted); border-top: 1px solid var(--border);
+
+    footer { padding: 16px clamp(16px, 5vw, 48px); color: var(--muted); border-top: 1px solid var(--border); }
+
+    @media (max-width: 1100px) {
+      .dash { grid-template-columns: repeat(3, minmax(180px, 1fr)); }
     }
-    @media (max-width: 720px) { header { grid-template-columns: 1fr auto; } }
+    @media (max-width: 720px) {
+      header { grid-template-columns: 1fr auto; }
+      .dash { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
+    }
   </style>
 </head>
 
@@ -128,13 +162,11 @@
   <header>
     <div class="brand">
       <div class="brand-icon" aria-hidden="true">
-        <!-- Header icon (same shield) -->
+        <!-- Header icon (same shield as favicon) -->
         <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img">
-          <defs>
-            <linearGradient id="gh" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#0b5cad"/><stop offset="1" stop-color="#2d7bd1"/>
-            </linearGradient>
-          </defs>
+          <defs><linearGradient id="gh" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#0b5cad"/><stop offset="1" stop-color="#2d7bd1"/>
+          </linearGradient></defs>
           <path fill="url(#gh)" d="M32 2l22 8v16c0 16-12 29-22 36-10-7-22-20-22-36V10l22-8z"/>
           <path fill="white" d="M32 14l10 4v8c0 9-6 16-10 19-4-3-10-10-10-19v-8l10-4z"/>
           <circle cx="32" cy="26" r="6" fill="#0b5cad"/>
@@ -142,7 +174,7 @@
       </div>
       <div>
         <h1>KEV Updates (Unified)</h1>
-        <div class="sub">Latest updates from the past 14 days affecting JSON/CSV, with CVE diffs, ransomware tagging, and administrative changes.</div>
+        <div class="sub">Compact dashboard + unified timeline (JSON/CSV), CVE diffs, ransomware tag changes, admin field diffs.</div>
       </div>
     </div>
     <div class="controls">
@@ -151,23 +183,38 @@
     </div>
   </header>
 
+  <!-- DASHBOARD -->
   <main>
     <section>
       <div class="section-header">
         <div>
-          <strong>Unified Timeline</strong>
+          <strong>Dashboard</strong>
+          <div id="dash-updated" class="updated"></div>
+        </div>
+      </div>
+
+      <div class="dash" id="dashboard">
+        <!-- Cards will be injected here -->
+      </div>
+    </section>
+
+    <!-- UNIFIED TIMELINE -->
+    <section>
+      <div class="section-header">
+        <div>
+          <strong>Unified Timeline (last 14 days)</strong>
           <div id="updated" class="updated"></div>
         </div>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr>
-              <th>Commit Time</th>
-              <th>Files Changed</th>
-              <th>Summary</th>
-              <th>Details (per CVE)</th>
-            </tr>
+          <tr>
+            <th>Commit Time</th>
+            <th>Files Changed</th>
+            <th>Summary</th>
+            <th>Details (per CVE)</th>
+          </tr>
           </thead>
           <tbody id="timeline">
             <tr><td colspan="4">Loading…</td></tr>
@@ -178,12 +225,9 @@
   </main>
 
   <footer>
-    Data loads live from GitHub on each view. No manual updates required.
+    Data loads live from GitHub on each view.
   </footer>
 
-  <!-- =========================== -->
-  <!--          JAVASCRIPT         -->
-  <!-- =========================== -->
   <script>
     const OWNER = "cisagov";
     const REPO  = "kev-data";
@@ -201,7 +245,7 @@
       document.body.classList.toggle("dark");
       localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
     };
-    document.getElementById("refresh").onclick = () => loadUnified();
+    document.getElementById("refresh").onclick = () => { loadUnified(); };
 
     const fmt = d => new Date(d).toLocaleString(undefined, { hour12: false });
 
@@ -216,8 +260,7 @@
       if (!r.ok) throw new Error(`${r.status} ${url}`);
       return r.text();
     }
-
-    async function listRecentCommits(perPage=30) {
+    async function listRecentCommits(perPage=150) {
       return fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}/commits?per_page=${perPage}`);
     }
     async function getCommitDetails(sha) {
@@ -226,17 +269,16 @@
     async function rawAt(sha, path) {
       return fetchText(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${sha}/${path}`);
     }
-    async function listHistoryForPath(path, perPage=50) {
+    async function listHistoryForPath(path, perPage=200) {
       return fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${encodeURIComponent(path)}&per_page=${perPage}`);
     }
 
     /* ===== Parsing & Normalization ===== */
-    // Normalize values to avoid false positives (e.g., whitespace, null vs empty, key order).
     function normalizeValue(val) {
       if (val === undefined || val === null) return null;
       if (typeof val === "string") {
         const s = val.trim();
-        return s.length ? s.replace(/\s+/g, " ") : null; // treat empty as null
+        return s.length ? s.replace(/\s+/g, " ") : null;
       }
       if (typeof val === "number" || typeof val === "boolean") return val;
       if (Array.isArray(val)) {
@@ -247,13 +289,12 @@
         const keys = Object.keys(val).sort();
         const obj = {};
         for (const k of keys) obj[k] = normalizeValue(val[k]);
-        return obj; // compare by JSON.stringify of normalized object
+        return obj;
       }
       return val;
     }
     function eq(a,b) { return JSON.stringify(normalizeValue(a)) === JSON.stringify(normalizeValue(b)); }
 
-    // JSON parser
     function parseKEVJson(text) {
       const data = JSON.parse(text);
       const rows = Array.isArray(data) ? data : (Array.isArray(data.vulnerabilities) ? data.vulnerabilities : []);
@@ -266,7 +307,7 @@
       return map;
     }
 
-    // Robust CSV parser (handles quotes/commas)
+    // Robust CSV parser (quotes/commas/CRLF)
     function parseCsv(text) {
       const out = [];
       let i=0, field="", row=[], inQ=false;
@@ -299,33 +340,28 @@
       return map;
     }
 
-    /* ===== Diffing (per file) ===== */
+    /* ===== Diffing ===== */
     function diffRecords(currMap, prevMap, isJson=false) {
-      const changes = new Map(); // id -> array of change entries
+      const changes = new Map(); // id -> [changes...]
 
       const ids = new Set([...currMap.keys(), ...prevMap.keys()]);
       for (const id of ids) {
         const c = currMap.get(id), p = prevMap.get(id);
 
-        if (c && !p) {
-          changes.set(id, [{type:"added"}]);
-          continue;
-        }
-        if (!c && p) {
-          changes.set(id, [{type:"removed"}]);
-          continue;
-        }
+        if (c && !p) { changes.set(id, [{type:"added"}]); continue; }
+        if (!c && p) { changes.set(id, [{type:"removed"}]); continue; }
+
         if (c && p) {
           const entries = [];
 
-          // Special case: ransomware tag (Option A)
+          // Ransomware tag (Option A: boolean field)
           const currRan = isJson ? Boolean(c.knownRansomwareCampaignUse) : null;
           const prevRan = isJson ? Boolean(p.knownRansomwareCampaignUse) : null;
           if (isJson && currRan !== prevRan) {
             entries.push({ type:"ransom", field:"knownRansomwareCampaignUse", from: prevRan, to: currRan });
           }
 
-          // Administrative changes: any other field change
+          // Administrative changes (per-field diffs, excluding CVE ID & ransomware tag)
           const keys = new Set([...Object.keys(c), ...Object.keys(p)]);
           for (const key of keys) {
             if (key === "cveID" || key === "cveId" || key === "cve" || key === "CVE" || key === "knownRansomwareCampaignUse") continue;
@@ -334,19 +370,14 @@
             const toV   = c ? c[key] : null;
 
             if (!eq(fromV, toV)) {
-              entries.push({
-                type: "admin",
-                field: key,
-                from: displayVal(fromV),
-                to:   displayVal(toV)
-              });
+              entries.push({ type:"admin", field: key, from: displayVal(fromV), to: displayVal(toV) });
             }
           }
 
           if (entries.length) changes.set(id, entries);
         }
       }
-      return changes; // Map id -> [changes...]
+      return changes;
     }
 
     function displayVal(v) {
@@ -364,16 +395,11 @@
       if (flags.csv)  arr.push(`<span class="chip csv">CSV</span>`);
       return arr.join(" ");
     }
-
     function summaryChips(changeMap) {
-      // Determine which types occurred in this commit
       const types = new Set();
       for (const arr of changeMap.values()) {
         for (const ch of arr) {
-          if (ch.type==="added") types.add("added");
-          else if (ch.type==="removed") types.add("removed");
-          else if (ch.type==="ransom") types.add("ransom");
-          else if (ch.type==="admin") types.add("admin");
+          types.add(ch.type);
         }
       }
       const out = [];
@@ -383,9 +409,7 @@
       if (types.has("admin"))  out.push(`<span class="chip admin">admin changed</span>`);
       return out.join(" ");
     }
-
     function detailsList(changeMap) {
-      // Show per-CVE details, listing only what actually happened
       const items = [];
       const ids = Array.from(changeMap.keys()).sort((a,b)=>String(a).localeCompare(String(b)));
       for (const id of ids) {
@@ -405,7 +429,6 @@
       if (!items.length) return "No CVE-level changes.";
       return `<details><summary>View CVE details</summary><ul>${items.join("")}</ul></details>`;
     }
-
     function renderRow(commitTime, fileFlags, combinedChanges) {
       return `<tr>
         <td class="mono">${fmt(commitTime)}</td>
@@ -415,14 +438,99 @@
       </tr>`;
     }
 
-    /* ===== Unified Loader ===== */
+    /* ===== Dashboard Aggregation ===== */
+    function startOfToday(d = new Date()) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
+    function startOfWeek(d = new Date()) { // rolling last 7 days (not ISO week)
+      const x = new Date(); x.setHours(0,0,0,0); x.setDate(x.getDate() - 6); return x;
+    }
+    function startOfMonth(d = new Date()) { const x = new Date(d.getFullYear(), d.getMonth(), 1); x.setHours(0,0,0,0); return x; }
+    function startOfCalendarYear(d = new Date()) { const x = new Date(d.getFullYear(), 0, 1); x.setHours(0,0,0,0); return x; }
+    function startOfFiscalYear(d = new Date()) {
+      const fyStartMonth = 9; // October (0-based)
+      const today = new Date(d);
+      const year = today.getMonth() >= fyStartMonth ? today.getFullYear() : today.getFullYear() - 1;
+      const x = new Date(year, fyStartMonth, 1); x.setHours(0,0,0,0); return x;
+    }
+
+    function summarizePeriod(rows, periodStart, periodEnd) {
+      const S = { commits: 0, files: {json:0, csv:0, both:0}, added:0, removed:0, ransom:0, admin:0 };
+      for (const r of rows) {
+        const t = new Date(r.time);
+        if (t >= periodStart && t <= periodEnd) {
+          S.commits++;
+          if (r.flags.json && r.flags.csv) S.files.both++;
+          else if (r.flags.json) S.files.json++;
+          else if (r.flags.csv) S.files.csv++;
+
+          for (const arr of r.changes.values()) {
+            for (const ch of arr) {
+              if (ch.type === "added") S.added++;
+              else if (ch.type === "removed") S.removed++;
+              else if (ch.type === "ransom") S.ransom++;
+              else if (ch.type === "admin") S.admin++;
+            }
+          }
+        }
+      }
+      return S;
+    }
+
+    function cardHTML(title, S) {
+      return `<div class="card">
+        <h3>${title}</h3>
+        <div class="nums">
+          <div class="num"><strong>${S.commits}</strong>Commits</div>
+          <div class="num"><strong>${S.files.json}</strong>JSON</div>
+          <div class="num"><strong>${S.files.csv}</strong>CSV</div>
+          <div class="num"><strong>${S.files.both}</strong>Both</div>
+        </div>
+        <div class="nums" style="margin-top:8px">
+          <div class="num"><strong style="color:var(--added)">${S.added}</strong>Added</div>
+          <div class="num"><strong style="color:var(--removed)">${S.removed}</strong>Removed</div>
+          <div class="num"><strong style="color:var(--ransom)">${S.ransom}</strong>Ransom</div>
+          <div class="num"><strong style="color:var(--admin)">${S.admin}</strong>Admin</div>
+        </div>
+      </div>`;
+    }
+
+    function renderDashboard(rows) {
+      const now = new Date();
+      const todayStart = startOfToday(now);
+      const weekStart  = startOfWeek(now);     // last 7 days rolling
+      const monthStart = startOfMonth(now);
+      const cyStart    = startOfCalendarYear(now);
+      const fyStart    = startOfFiscalYear(now);
+      const end        = now;
+
+      const S_today = summarizePeriod(rows, todayStart, end);
+      const S_week  = summarizePeriod(rows, weekStart, end);
+      const S_month = summarizePeriod(rows, monthStart, end);
+      const S_cy    = summarizePeriod(rows, cyStart, end);
+      const S_fy    = summarizePeriod(rows, fyStart, end);
+
+      const dash = document.getElementById("dashboard");
+      dash.innerHTML = [
+        cardHTML("Today", S_today),
+        cardHTML("Last 7 Days", S_week),
+        cardHTML("This Month", S_month),
+        cardHTML("Calendar YTD", S_cy),
+        cardHTML("Fiscal YTD", S_fy),
+      ].join("");
+
+      document.getElementById("dash-updated").textContent = "Last updated: " + fmt(new Date());
+    }
+
+    /* ===== Unified Loader (14-day table + dashboard) ===== */
     async function loadUnified() {
       const tbody = document.getElementById("timeline");
       const updated = document.getElementById("updated");
+
       try {
-        // 1) Get recent commits and inspect which touched JSON or CSV
-        const recent = await listRecentCommits(200); // fetch enough to find 5 relevant commits
+        // Commit discovery: pull enough to cover all dashboard ranges with diff merges
+        const recent = await listRecentCommits(200); // increase if necessary
         const commitsWithFiles = [];
+
+        // Identify commits touching JSON or CSV
         for (const c of recent) {
           const details = await getCommitDetails(c.sha);
           const changedPaths = (details.files || []).map(f => f.filename);
@@ -431,29 +539,19 @@
           if (touchedJson || touchedCsv) {
             commitsWithFiles.push({ base: c, touchedJson, touchedCsv });
           }
-          if (commitsWithFiles.length >= 10) break; // keep a buffer
         }
 
-        // Filter commits touching JSON or CSV within the last 14 days
-        const days14 = 14 * 24 * 60 * 60 * 1000;
-        const cutoff = Date.now() - days14;
+        // Build file-specific histories to find "previous" touching commit
+        const jsonHist = await listHistoryForPath(PATHS.JSON, 200);
+        const csvHist  = await listHistoryForPath(PATHS.CSV, 200);
 
-        const relevant = commitsWithFiles.filter(item => {
-        const ct = new Date(item.base.commit?.author?.date || item.base.commit?.committer?.date).getTime();
-        return ct >= cutoff;
-        });        
-
-        // 2) Build lookup arrays for file histories to find "previous" commit per file
-        const jsonHist = await listHistoryForPath(PATHS.JSON, 60);
-        const csvHist  = await listHistoryForPath(PATHS.CSV, 60);
-
-        // 3) For each relevant commit, compute per-file diffs, then merge
+        // Build rows (commitTime, fileFlags, combinedChanges)
         const rows = [];
-        for (const item of relevant) {
+        for (const item of commitsWithFiles) {
           const sha = item.base.sha;
           const commitTime = item.base.commit?.author?.date || item.base.commit?.committer?.date;
 
-          let combined = new Map();            // id -> [changes...] from both files
+          let combined = new Map();
           const fileFlags = { json: false, csv: false };
 
           // JSON diff
@@ -480,14 +578,23 @@
             const currMap = parseCsv(currText);
             const prevMap = prevText ? parseCsv(prevText) : new Map();
 
-            const diffMap = diffRecords(currMap, prevMap, false); // ransomware only for JSON
+            const diffMap = diffRecords(currMap, prevMap, false);
             combined = mergeChangeMaps(combined, diffMap);
           }
 
-          rows.push(renderRow(commitTime, fileFlags, combined));
+          rows.push({ time: commitTime, flags: fileFlags, changes: combined });
         }
 
-        tbody.innerHTML = rows.join("") || `<tr><td colspan="4">No recent JSON/CSV updates found.</td></tr>`;
+        // Render dashboard (all rows)
+        renderDashboard(rows);
+
+        // Render 14-day unified table
+        const days14 = 14 * 24 * 60 * 60 * 1000;
+        const cutoff = Date.now() - days14;
+        const recentRows = rows.filter(r => new Date(r.time).getTime() >= cutoff);
+
+        const tableRows = recentRows.map(r => renderRow(r.time, r.flags, r.changes));
+        tbody.innerHTML = tableRows.join("") || `<tr><td colspan="4">No JSON/CSV updates in the last 14 days.</td></tr>`;
         updated.textContent = "Last updated: " + fmt(new Date());
       } catch (e) {
         tbody.innerHTML = `<tr><td colspan="4">Error loading updates: ${e.message}</td></tr>`;
@@ -499,7 +606,6 @@
       const prev = idx >= 0 ? historyList[idx+1] : null;
       return prev ? prev.sha : null;
     }
-
     function mergeChangeMaps(baseMap, newMap) {
       const merged = new Map(baseMap);
       for (const [id, list] of newMap.entries()) {
