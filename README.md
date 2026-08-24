@@ -18,7 +18,7 @@ The JSON schema will also remain in sync, though that file is not expected to be
 
 We welcome contribution suggestions from the public to make this repository better and more accurate. Please see this repository's [CONTRIBUTING.md](CONTRIBUTING.md) for more detail. In summary, we expect issues and pull requests to address purely technical issues like typos in prose, broken links to remediation guidance, accidental schema violations, and the like.
 
-Notably, **this is not a repo for requesting additions or deletions of KEV entries**. The KEV is managed by CISA directly, and CISA's requirements for KEV addition are fairly strict, relying on the authority of [BOD 22-01](https://www.cisa.gov/news-events/directives/bod-22-01-reducing-significant-risk-known-exploited-vulnerabilities).
+Notably, **this is not a repo for requesting additions or deletions of KEV entries**. The KEV is managed by CISA directly, and CISA's requirements for KEV addition are fairly strict, relying on the authority of [BOD 26-04](https://www.cisa.gov/news-events/directives/bod-26-04-prioritizing-security-updates-based-risk).
 
 Tips or suggestions about individual entries (beyond technical bug reports) should be directed via email to [KEV@cisa.dhs.gov](mailto:KEV@cisa.dhs.gov).
 
