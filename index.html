@@ -433,7 +433,15 @@
           }
           if (commitsWithFiles.length >= 10) break; // keep a buffer
         }
-        const relevant = commitsWithFiles.slice(0,5);
+
+        // Filter commits touching JSON or CSV within the last 14 days
+        const days14 = 14 * 24 * 60 * 60 * 1000;
+        const cutoff = Date.now() - days14;
+
+        const relevant = commitsWithFiles.filter(item => {
+        const ct = new Date(item.base.commit?.author?.date || item.base.commit?.committer?.date).getTime();
+        return ct >= cutoff;
+        });        
 
         // 2) Build lookup arrays for file histories to find "previous" commit per file
         const jsonHist = await listHistoryForPath(PATHS.JSON, 60);
