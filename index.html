@@ -142,7 +142,7 @@
       </div>
       <div>
         <h1>KEV Updates (Unified)</h1>
-        <div class="sub">Latest 5 updates affecting JSON/CSV, with CVE diffs, ransomware tagging, and administrative changes.</div>
+        <div class="sub">Latest updates from the past 14 days affecting JSON/CSV, with CVE diffs, ransomware tagging, and administrative changes.</div>
       </div>
     </div>
     <div class="controls">
@@ -421,7 +421,7 @@
       const updated = document.getElementById("updated");
       try {
         // 1) Get recent commits and inspect which touched JSON or CSV
-        const recent = await listRecentCommits(40); // fetch enough to find 5 relevant commits
+        const recent = await listRecentCommits(200); // fetch enough to find 5 relevant commits
         const commitsWithFiles = [];
         for (const c of recent) {
           const details = await getCommitDetails(c.sha);
