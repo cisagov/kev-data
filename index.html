@@ -352,12 +352,27 @@
     }
     function mergeChangeMaps(baseMap, newMap) {
       const merged = new Map(baseMap);
-      for (const [id, list] of newMap.entries()) {
-        if (!merged.has(id)) merged.set(id, list);
-        else merged.set(id, merged.get(id).concat(list));
-      }
-      return merged;
+    
+      for (const [id, newList] of newMap.entries()) {
+    if (!merged.has(id)) {
+      merged.set(id, newList);
+    } else {
+      const existing = merged.get(id);
+      const combined = [...existing];
+
+      // Add only entries that don’t already exist in the array
+      newList.forEach(entry => {
+        const serialized = JSON.stringify(entry);
+        const exists = existing.some(e => JSON.stringify(e) === serialized);
+        if (!exists) combined.push(entry);
+      });
+
+      merged.set(id, combined);
     }
+  }
+
+  return merged;
+}
 
     async function loadUnified() {
       const tbody = document.getElementById("timeline");
