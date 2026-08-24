@@ -2,11 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>KEV Data – Latest JSON & CSV Updates</title>
+  <title>KEV Updates – JSON & CSV (Unified)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+  <!-- Favicon: professional shield icon (data URI). Replace with official asset anytime. -->
+  <link rel="icon" type="image/svg+xml"
+        href='data:image/svg+xml;utf8,
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="%230b5cad"/>
+              <stop offset="1" stop-color="%232d7bd1"/>
+            </linearGradient>
+          </defs>
+          <path fill="url(%23g)" d="M32 2l22 8v16c0 16-12 29-22 36-10-7-22-20-22-36V10l22-8z"/>
+          <path fill="white" d="M32 14l10 4v8c0 9-6 16-10 19-4-3-10-10-10-19v-8l10-4z"/>
+          <circle cx="32" cy="26" r="6" fill="%230b5cad"/>
+        </svg>' />
+
   <!-- =========================== -->
-  <!--         PROFESSIONAL CSS    -->
+  <!--            CSS              -->
   <!-- =========================== -->
   <style>
     :root {
@@ -17,14 +32,14 @@
       --border: #d9dee3;
       --row: #f7f9fb;
 
+      --chip-bg: #eef3f9;
       --added: #0f7b28;
       --removed: #b00020;
       --ransom: #8a2be2;
       --admin: #8a6d1c;
-
-      --chip-bg: #eef3f9;
+      --csv: #0b5cad;
+      --json: #2d7bd1;
     }
-
     body.dark {
       --bg: #0f141a;
       --fg: #e8eef3;
@@ -33,421 +48,461 @@
       --border: #2a3742;
       --row: #111821;
       --chip-bg: #0f253d;
+      --csv: #58a6ff;
+      --json: #8dbbff;
     }
-
+    * { box-sizing: border-box; }
     body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      margin: 0; background: var(--bg); color: var(--fg);
+      font: 15px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
-
     header {
-      padding: 24px clamp(16px, 5vw, 48px);
+      display: grid; grid-template-columns: auto 1fr auto; align-items: center;
+      gap: 16px; padding: 24px clamp(16px, 5vw, 48px);
       border-bottom: 1px solid var(--border);
       background: linear-gradient(180deg, rgba(11,92,173,0.07), transparent);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
     }
-
-    h1 {
-      margin: 0 0 6px 0;
-      font-size: clamp(22px, 3vw, 32px);
+    .brand {
+      display: flex; align-items: center; gap: 12px;
     }
-
-    .sub {
-      color: var(--muted);
-      font-size: 14px;
+    .brand-icon {
+      width: 36px; height: 36px; border-radius: 8px; background: var(--row);
+      display: grid; place-items: center; border: 1px solid var(--border);
     }
-
+    .brand-icon svg { width: 24px; height: 24px; }
+    h1 { margin: 0; font-size: clamp(22px, 3vw, 30px); }
+    .sub { color: var(--muted); font-size: 14px; }
+    .controls { display: flex; gap: 10px; align-items: center; }
     .btn {
-      background: var(--row);
-      color: var(--fg);
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-left: 12px;
+      background: var(--row); color: var(--fg);
+      border: 1px solid var(--border); padding: 8px 12px;
+      border-radius: 8px; cursor: pointer;
     }
-    .btn:hover {
-      border-color: var(--accent);
-    }
+    .btn:hover { border-color: var(--accent); }
 
-    main {
-      padding: 32px clamp(16px, 5vw, 48px);
-      display: grid;
-      gap: 40px;
-    }
+    main { padding: 32px clamp(16px, 5vw, 48px); display: grid; gap: 28px; }
 
     section {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      background: var(--bg);
+      border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg);
     }
-
     .section-header {
-      background: var(--row);
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
+      background: var(--row); padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: baseline; justify-content: space-between;
     }
+    .updated { color: var(--muted); font-size: 13px; }
 
-    .section-header h2 {
-      margin: 0;
-      font-size: 20px;
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border);
+      color: var(--muted); white-space: nowrap;
     }
-
-    .updated {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 6px;
+    tbody td {
+      padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top;
     }
+    tbody tr:nth-child(even) { background: var(--row); }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th {
-      text-align: left;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    td {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-      font-size: 14px;
-    }
-
-    tr:nth-child(even) {
-      background: var(--row);
-    }
-
-    .mono {
-      font-family: ui-monospace, Menlo, Consolas, monospace;
-    }
-
+    .mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
     .chip {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 8px;
-      font-size: 12px;
-      margin-right: 6px;
-      background: var(--chip-bg);
-      border: 1px solid var(--border);
+      display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 12px;
+      background: var(--chip-bg); border: 1px solid var(--border); margin-right: 6px;
     }
-    .added { color: var(--added); border-color: var(--added); }
-    .removed { color: var(--removed); border-color: var(--removed); }
-    .ransom { color: var(--ransom); border-color: var(--ransom); }
-    .admin { color: var(--admin); border-color: var(--admin); }
+    .chip.csv { color: var(--csv); border-color: var(--csv); }
+    .chip.json { color: var(--json); border-color: var(--json); }
+    .chip.added { color: var(--added); border-color: var(--added); }
+    .chip.removed { color: var(--removed); border-color: var(--removed); }
+    .chip.ransom { color: var(--ransom); border-color: var(--ransom); }
+    .chip.admin { color: var(--admin); border-color: var(--admin); }
 
-    details {
-      margin-top: 8px;
-      border-left: 3px solid var(--border);
-      padding-left: 12px;
-    }
-    summary {
-      cursor: pointer;
-      font-size: 14px;
-      color: var(--accent);
-    }
-
-    ul {
-      margin: 6px 0 0 0;
-      padding-left: 20px;
-    }
-
+    details { margin-top: 8px; border-left: 3px solid var(--border); padding-left: 12px; }
+    summary { cursor: pointer; color: var(--accent); }
+    ul { margin: 8px 0 0 20px; }
     footer {
-      padding: 24px clamp(16px, 5vw, 48px);
-      color: var(--muted);
-      font-size: 13px;
-      border-top: 1px solid var(--border);
+      padding: 24px clamp(16px, 5vw, 48px); color: var(--muted); border-top: 1px solid var(--border);
     }
+    @media (max-width: 720px) { header { grid-template-columns: 1fr auto; } }
   </style>
 </head>
 
 <body>
   <header>
-    <div>
-      <h1>KEV Data – Latest JSON & CSV Updates</h1>
-      <div class="sub">Always shows the newest 5 updates to known_exploited_vulnerabilities.json and .csv</div>
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">
+        <!-- Header icon (same shield) -->
+        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img">
+          <defs>
+            <linearGradient id="gh" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#0b5cad"/><stop offset="1" stop-color="#2d7bd1"/>
+            </linearGradient>
+          </defs>
+          <path fill="url(#gh)" d="M32 2l22 8v16c0 16-12 29-22 36-10-7-22-20-22-36V10l22-8z"/>
+          <path fill="white" d="M32 14l10 4v8c0 9-6 16-10 19-4-3-10-10-10-19v-8l10-4z"/>
+          <circle cx="32" cy="26" r="6" fill="#0b5cad"/>
+        </svg>
+      </div>
+      <div>
+        <h1>KEV Updates (Unified)</h1>
+        <div class="sub">Latest 5 updates affecting JSON/CSV, with CVE diffs, ransomware tagging, and administrative changes.</div>
+      </div>
     </div>
-    <div>
-      <button id="themeToggle" class="btn">🌙 / 🌞</button>
-      <button id="refresh" class="btn">⟳ Refresh</button>
+    <div class="controls">
+      <button id="themeToggle" class="btn" aria-label="Toggle theme">🌙 / 🌞</button>
+      <button id="refresh" class="btn" aria-label="Refresh data">⟳ Refresh</button>
     </div>
   </header>
 
   <main>
-    <!-- JSON -->
     <section>
       <div class="section-header">
-        <h2>JSON Updates</h2>
-        <div id="json-updated" class="updated"></div>
+        <div>
+          <strong>Unified Timeline</strong>
+          <div id="updated" class="updated"></div>
+        </div>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Commit Time</th>
-            <th>Changes</th>
-            <th>Details</th>
-          </tr>
-        </thead>
-        <tbody id="json-body">
-          <tr><td colspan="3">Loading…</td></tr>
-        </tbody>
-      </table>
-    </section>
-
-    <!-- CSV -->
-    <section>
-      <div class="section-header">
-        <h2>CSV Updates</h2>
-        <div id="csv-updated" class="updated"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Commit Time</th>
+              <th>Files Changed</th>
+              <th>Summary</th>
+              <th>Details (per CVE)</th>
+            </tr>
+          </thead>
+          <tbody id="timeline">
+            <tr><td colspan="4">Loading…</td></tr>
+          </tbody>
+        </table>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Commit Time</th>
-            <th>Changes</th>
-            <th>Details</th>
-          </tr>
-        </thead>
-        <tbody id="csv-body">
-          <tr><td colspan="3">Loading…</td></tr>
-        </tbody>
-      </table>
     </section>
   </main>
 
   <footer>
-    Data retrieved live from GitHub on each page load.
+    Data loads live from GitHub on each view. No manual updates required.
   </footer>
 
-
   <!-- =========================== -->
-  <!--       JAVASCRIPT LOGIC      -->
+  <!--          JAVASCRIPT         -->
   <!-- =========================== -->
   <script>
     const OWNER = "cisagov";
-    const REPO = "kev-data";
+    const REPO  = "kev-data";
 
-    const FILES = {
-      json: "known_exploited_vulnerabilities.json",
-      csv:  "known_exploited_vulnerabilities.csv",
+    const PATHS = {
+      JSON: "known_exploited_vulnerabilities.json",
+      CSV:  "known_exploited_vulnerabilities.csv"
     };
 
-    /* ---------- Theme ---------- */
+    /* ===== Theme ===== */
     const themeBtn = document.getElementById("themeToggle");
-    const savedTheme = localStorage.getItem("theme") || "light";
-    if (savedTheme === "dark") document.body.classList.add("dark");
-
+    const saved = localStorage.getItem("theme") || "light";
+    if (saved === "dark") document.body.classList.add("dark");
     themeBtn.onclick = () => {
       document.body.classList.toggle("dark");
       localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
     };
+    document.getElementById("refresh").onclick = () => loadUnified();
 
-    document.getElementById("refresh").onclick = () => loadAll();
+    const fmt = d => new Date(d).toLocaleString(undefined, { hour12: false });
 
-    const fmt = d => new Date(d).toLocaleString();
-
-    /* ---------- GitHub API Calls ---------- */
-    async function commitsFor(path) {
-      const url = `https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${path}&per_page=10`;
+    /* ===== GitHub API Helpers ===== */
+    async function fetchJSON(url) {
       const r = await fetch(url);
+      if (!r.ok) throw new Error(`${r.status} ${url}`);
       return r.json();
     }
-
-    async function rawAt(sha, path) {
-      const url = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${sha}/${path}`;
+    async function fetchText(url) {
       const r = await fetch(url);
+      if (!r.ok) throw new Error(`${r.status} ${url}`);
       return r.text();
     }
 
-    /* ---------- Parsers ---------- */
-    function parseJson(text) {
-      const data = JSON.parse(text);
-      const rows = Array.isArray(data) ? data : data.vulnerabilities;
-      const map = new Map();
-      rows.forEach(v => {
-        const id = v.cveID || v.cveId || v.cve || v.CVE;
-        if (id) map.set(id, v);
-      });
-      return map;
+    async function listRecentCommits(perPage=30) {
+      return fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}/commits?per_page=${perPage}`);
+    }
+    async function getCommitDetails(sha) {
+      return fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}/commits/${sha}`);
+    }
+    async function rawAt(sha, path) {
+      return fetchText(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${sha}/${path}`);
+    }
+    async function listHistoryForPath(path, perPage=50) {
+      return fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${encodeURIComponent(path)}&per_page=${perPage}`);
     }
 
-    function parseCsv(text) {
-      const rows = text.split(/\r?\n/).map(r => r.split(","));
-      const header = rows.shift();
-      if (!header) return new Map();
-
-      const map = new Map();
-      rows.forEach(r => {
+    /* ===== Parsing & Normalization ===== */
+    // Normalize values to avoid false positives (e.g., whitespace, null vs empty, key order).
+    function normalizeValue(val) {
+      if (val === undefined || val === null) return null;
+      if (typeof val === "string") {
+        const s = val.trim();
+        return s.length ? s.replace(/\s+/g, " ") : null; // treat empty as null
+      }
+      if (typeof val === "number" || typeof val === "boolean") return val;
+      if (Array.isArray(val)) {
+        const norm = val.map(v => normalizeValue(v)).filter(v => v !== null);
+        return norm.sort((a,b)=>String(a).localeCompare(String(b)));
+      }
+      if (typeof val === "object") {
+        const keys = Object.keys(val).sort();
         const obj = {};
-        header.forEach((h, i) => obj[h.trim()] = (r[i] || "").trim());
-        const id = obj.cveID || obj.cveId || obj.cve || obj.CVE;
-        if (id) map.set(id, obj);
-      });
+        for (const k of keys) obj[k] = normalizeValue(val[k]);
+        return obj; // compare by JSON.stringify of normalized object
+      }
+      return val;
+    }
+    function eq(a,b) { return JSON.stringify(normalizeValue(a)) === JSON.stringify(normalizeValue(b)); }
+
+    // JSON parser
+    function parseKEVJson(text) {
+      const data = JSON.parse(text);
+      const rows = Array.isArray(data) ? data : (Array.isArray(data.vulnerabilities) ? data.vulnerabilities : []);
+      const map = new Map();
+      for (const row of rows) {
+        const id = row.cveID || row.cveId || row.cve || row.CVE;
+        if (!id) continue;
+        map.set(String(id), row);
+      }
       return map;
     }
 
-    /* ---------- Diffing ---------- */
-    function diffMaps(curr, prev) {
+    // Robust CSV parser (handles quotes/commas)
+    function parseCsv(text) {
       const out = [];
+      let i=0, field="", row=[], inQ=false;
+      while (i<text.length) {
+        const c=text[i++];
+        if (inQ) {
+          if (c===`"`) {
+            if (text[i]===`"`) { field+=`"`; i++; } else { inQ=false; }
+          } else field+=c;
+        } else {
+          if (c===`,`) { row.push(field); field=""; }
+          else if (c===`\n`) { row.push(field); field=""; out.push(row); row=[]; }
+          else if (c===`\r`) { /* ignore */ }
+          else if (c===`"`) inQ=true;
+          else field+=c;
+        }
+      }
+      if (field.length || row.length) { row.push(field); out.push(row); }
+      const header = (out.shift() || []).map(h => h.trim());
+      const idx = Object.fromEntries(header.map((h, i)=>[h, i]));
+      const arr = out.filter(r => r.length>0 && r.some(x=>x?.trim()?.length)).map(r=>{
+        const obj={}; header.forEach((h,j)=>obj[h]= (r[j]||"").trim()); return obj;
+      });
+      const idCol = ["cveID","cveId","cve","CVE","CVE_ID","cve_id"].find(k => k in idx) || "cveID";
+      const map = new Map();
+      for (const row of arr) {
+        const id = row[idCol];
+        if (id) map.set(String(id), row);
+      }
+      return map;
+    }
 
-      const keys = new Set([...curr.keys(), ...prev.keys()]);
+    /* ===== Diffing (per file) ===== */
+    function diffRecords(currMap, prevMap, isJson=false) {
+      const changes = new Map(); // id -> array of change entries
 
-      for (const id of keys) {
-        const c = curr.get(id);
-        const p = prev.get(id);
+      const ids = new Set([...currMap.keys(), ...prevMap.keys()]);
+      for (const id of ids) {
+        const c = currMap.get(id), p = prevMap.get(id);
 
-        // CVE added
         if (c && !p) {
-          out.push({ id, type: "added" });
+          changes.set(id, [{type:"added"}]);
           continue;
         }
-
-        // CVE removed
         if (!c && p) {
-          out.push({ id, type: "removed" });
+          changes.set(id, [{type:"removed"}]);
           continue;
         }
-
-        // Both exist: compare fields
         if (c && p) {
-          const changes = [];
+          const entries = [];
 
-          const currRansom = Boolean(c.knownRansomwareCampaignUse);
-          const prevRansom = Boolean(p.knownRansomwareCampaignUse);
-
-          if (currRansom !== prevRansom) {
-            changes.push({ field: "knownRansomwareCampaignUse", from: prevRansom, to: currRansom, type: "ransom" });
+          // Special case: ransomware tag (Option A)
+          const currRan = isJson ? Boolean(c.knownRansomwareCampaignUse) : null;
+          const prevRan = isJson ? Boolean(p.knownRansomwareCampaignUse) : null;
+          if (isJson && currRan !== prevRan) {
+            entries.push({ type:"ransom", field:"knownRansomwareCampaignUse", from: prevRan, to: currRan });
           }
 
-          // Administrative changes for any other field
-          for (const key of Object.keys(c)) {
-            if (key === "cveID" || key === "knownRansomwareCampaignUse") continue;
+          // Administrative changes: any other field change
+          const keys = new Set([...Object.keys(c), ...Object.keys(p)]);
+          for (const key of keys) {
+            if (key === "cveID" || key === "cveId" || key === "cve" || key === "CVE" || key === "knownRansomwareCampaignUse") continue;
 
-            if ((p[key] || "") !== (c[key] || "")) {
-              changes.push({
+            const fromV = p ? p[key] : null;
+            const toV   = c ? c[key] : null;
+
+            if (!eq(fromV, toV)) {
+              entries.push({
+                type: "admin",
                 field: key,
-                from: p[key] || "(empty)",
-                to: c[key] || "(empty)",
-                type: "admin"
+                from: displayVal(fromV),
+                to:   displayVal(toV)
               });
             }
           }
 
-          if (changes.length) {
-            out.push({ id, type: "changed", details: changes });
+          if (entries.length) changes.set(id, entries);
+        }
+      }
+      return changes; // Map id -> [changes...]
+    }
+
+    function displayVal(v) {
+      if (v === null || v === undefined || (typeof v === "string" && v.trim()==="")) return "(empty)";
+      if (typeof v === "boolean") return v ? "true" : "false";
+      if (Array.isArray(v)) return v.length ? JSON.stringify(v) : "(empty)";
+      if (typeof v === "object") return JSON.stringify(v);
+      return String(v);
+    }
+
+    /* ===== Rendering ===== */
+    function chipsForFiles(flags) {
+      const arr = [];
+      if (flags.json) arr.push(`<span class="chip json">JSON</span>`);
+      if (flags.csv)  arr.push(`<span class="chip csv">CSV</span>`);
+      return arr.join(" ");
+    }
+
+    function summaryChips(changeMap) {
+      // Determine which types occurred in this commit
+      const types = new Set();
+      for (const arr of changeMap.values()) {
+        for (const ch of arr) {
+          if (ch.type==="added") types.add("added");
+          else if (ch.type==="removed") types.add("removed");
+          else if (ch.type==="ransom") types.add("ransom");
+          else if (ch.type==="admin") types.add("admin");
+        }
+      }
+      const out = [];
+      if (types.has("added"))  out.push(`<span class="chip added">added</span>`);
+      if (types.has("removed")) out.push(`<span class="chip removed">removed</span>`);
+      if (types.has("ransom")) out.push(`<span class="chip ransom">ransomware changed</span>`);
+      if (types.has("admin"))  out.push(`<span class="chip admin">admin changed</span>`);
+      return out.join(" ");
+    }
+
+    function detailsList(changeMap) {
+      // Show per-CVE details, listing only what actually happened
+      const items = [];
+      const ids = Array.from(changeMap.keys()).sort((a,b)=>String(a).localeCompare(String(b)));
+      for (const id of ids) {
+        const changes = changeMap.get(id);
+        for (const ch of changes) {
+          if (ch.type === "added") {
+            items.push(`<li class="mono">${id} — added</li>`);
+          } else if (ch.type === "removed") {
+            items.push(`<li class="mono">${id} — removed</li>`);
+          } else if (ch.type === "ransom") {
+            items.push(`<li class="mono">${id} — ransomware tag changed (${displayVal(ch.from)} → ${displayVal(ch.to)})</li>`);
+          } else if (ch.type === "admin") {
+            items.push(`<li class="mono">${id} — admin change: ${ch.field} (${ch.from} → ${ch.to})</li>`);
           }
         }
       }
-
-      return out;
+      if (!items.length) return "No CVE-level changes.";
+      return `<details><summary>View CVE details</summary><ul>${items.join("")}</ul></details>`;
     }
 
-    /* ---------- Renderer ---------- */
-    function render(commitTime, diffs, file) {
-      const chips = {
-        added: `<span class="chip added">added</span>`,
-        removed: `<span class="chip removed">removed</span>`,
-        ransom: `<span class="chip ransom">ransomware changed</span>`,
-        admin: `<span class="chip admin">admin changed</span>`,
-      };
-
-      let summaryChips = "";
-
-      // Build summary chip line (unique change types)
-      const types = new Set();
-      diffs.forEach(d => {
-        if (d.type === "added") types.add("added");
-        if (d.type === "removed") types.add("removed");
-        if (d.type === "changed") {
-          d.details.forEach(ch => types.add(ch.type));
-        }
-      });
-
-      types.forEach(t => summaryChips += chips[t] || "");
-
-      // Details section
-      let details = "";
-
-      details += `<details><summary>View details</summary><ul>`;
-
-      diffs.forEach(d => {
-        if (d.type === "added") {
-          details += `<li class="mono">${d.id} — added</li>`;
-        } else if (d.type === "removed") {
-          details += `<li class="mono">${d.id} — removed</li>`;
-        } else if (d.type === "changed") {
-          d.details.forEach(ch => {
-            if (ch.type === "ransom") {
-              details += `<li class="mono">${d.id} — ransomware tag changed (${ch.from} → ${ch.to})</li>`;
-            } else {
-              details += `<li class="mono">${d.id} — admin change: ${ch.field} (${ch.from} → ${ch.to})</li>`;
-            }
-          });
-        }
-      });
-
-      details += `</ul></details>`;
-
-      return `
-        <tr>
-          <td class="mono">${fmt(commitTime)}</td>
-          <td>${summaryChips || "No changes"}</td>
-          <td>${details}</td>
-        </tr>`;
+    function renderRow(commitTime, fileFlags, combinedChanges) {
+      return `<tr>
+        <td class="mono">${fmt(commitTime)}</td>
+        <td>${chipsForFiles(fileFlags)}</td>
+        <td>${summaryChips(combinedChanges) || "No changes"}</td>
+        <td>${detailsList(combinedChanges)}</td>
+      </tr>`;
     }
 
-    /* ---------- Loaders ---------- */
-    async function loadSection(path, tbodyId, updatedId, parser) {
-      const tbody = document.getElementById(tbodyId);
-      const updated = document.getElementById(updatedId);
-
+    /* ===== Unified Loader ===== */
+    async function loadUnified() {
+      const tbody = document.getElementById("timeline");
+      const updated = document.getElementById("updated");
       try {
-        const commits = await commitsFor(path);
-        const five = commits.slice(0,5);
+        // 1) Get recent commits and inspect which touched JSON or CSV
+        const recent = await listRecentCommits(40); // fetch enough to find 5 relevant commits
+        const commitsWithFiles = [];
+        for (const c of recent) {
+          const details = await getCommitDetails(c.sha);
+          const changedPaths = (details.files || []).map(f => f.filename);
+          const touchedJson = changedPaths.includes(PATHS.JSON);
+          const touchedCsv  = changedPaths.includes(PATHS.CSV);
+          if (touchedJson || touchedCsv) {
+            commitsWithFiles.push({ base: c, touchedJson, touchedCsv });
+          }
+          if (commitsWithFiles.length >= 10) break; // keep a buffer
+        }
+        const relevant = commitsWithFiles.slice(0,5);
 
+        // 2) Build lookup arrays for file histories to find "previous" commit per file
+        const jsonHist = await listHistoryForPath(PATHS.JSON, 60);
+        const csvHist  = await listHistoryForPath(PATHS.CSV, 60);
+
+        // 3) For each relevant commit, compute per-file diffs, then merge
         const rows = [];
+        for (const item of relevant) {
+          const sha = item.base.sha;
+          const commitTime = item.base.commit?.author?.date || item.base.commit?.committer?.date;
 
-        for (let i = 0; i < five.length; i++) {
-          const curr = five[i];
-          const prev = commits[i+1];
+          let combined = new Map();            // id -> [changes...] from both files
+          const fileFlags = { json: false, csv: false };
 
-          const currFile = await rawAt(curr.sha, path);
-          const prevFile = prev ? await rawAt(prev.sha, path) : null;
+          // JSON diff
+          if (item.touchedJson) {
+            fileFlags.json = true;
+            const currText = await rawAt(sha, PATHS.JSON);
+            const prevSha  = findPrevSha(jsonHist, sha);
+            const prevText = prevSha ? await rawAt(prevSha, PATHS.JSON) : null;
 
-          const currMap = parser(currFile);
-          const prevMap = prevFile ? parser(prevFile) : new Map();
+            const currMap = parseKEVJson(currText);
+            const prevMap = prevText ? parseKEVJson(prevText) : new Map();
 
-          const diffs = diffMaps(currMap, prevMap);
+            const diffMap = diffRecords(currMap, prevMap, true);
+            combined = mergeChangeMaps(combined, diffMap);
+          }
 
-          rows.push(render(curr.commit.author.date, diffs, path));
+          // CSV diff
+          if (item.touchedCsv) {
+            fileFlags.csv = true;
+            const currText = await rawAt(sha, PATHS.CSV);
+            const prevSha  = findPrevSha(csvHist, sha);
+            const prevText = prevSha ? await rawAt(prevSha, PATHS.CSV) : null;
+
+            const currMap = parseCsv(currText);
+            const prevMap = prevText ? parseCsv(prevText) : new Map();
+
+            const diffMap = diffRecords(currMap, prevMap, false); // ransomware only for JSON
+            combined = mergeChangeMaps(combined, diffMap);
+          }
+
+          rows.push(renderRow(commitTime, fileFlags, combined));
         }
 
-        tbody.innerHTML = rows.join("");
+        tbody.innerHTML = rows.join("") || `<tr><td colspan="4">No recent JSON/CSV updates found.</td></tr>`;
         updated.textContent = "Last updated: " + fmt(new Date());
       } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="3">Error: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4">Error loading updates: ${e.message}</td></tr>`;
       }
     }
 
-    async function loadAll() {
-      await Promise.all([
-        loadSection(FILES.json, "json-body", "json-updated", parseJson),
-        loadSection(FILES.csv, "csv-body", "csv-updated", parseCsv),
-      ]);
+    function findPrevSha(historyList, currentSha) {
+      const idx = historyList.findIndex(c => c.sha === currentSha);
+      const prev = idx >= 0 ? historyList[idx+1] : null;
+      return prev ? prev.sha : null;
     }
 
-    loadAll();
+    function mergeChangeMaps(baseMap, newMap) {
+      const merged = new Map(baseMap);
+      for (const [id, list] of newMap.entries()) {
+        if (!merged.has(id)) merged.set(id, list);
+        else merged.set(id, merged.get(id).concat(list));
+      }
+      return merged;
+    }
+
+    // Initial load
+    loadUnified();
   </script>
 </body>
 </html>
