@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>KEV Updates – Unified + Dashboard</title>
+  <title>KEV Updates – Unified + Dashboard (Rate‑friendly)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Favicon: shield-style professional icon (replace with official logo anytime). -->
+  <!-- Favicon: shield-style professional icon (replace with official when available). -->
   <link rel="icon" type="image/svg+xml"
         href='data:image/svg+xml;utf8,
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
@@ -22,119 +22,62 @@
 
   <style>
     :root {
-      --bg: #ffffff;
-      --fg: #1c2733;
-      --muted: #5f6d7a;
-      --accent: #0b5cad;
-      --border: #d9dee3;
-      --row: #f7f9fb;
-
-      --chip-bg: #eef3f9;
-      --added: #0f7b28;
-      --removed: #b00020;
-      --ransom: #8a2be2;
-      --admin: #8a6d1c;
-      --csv: #0b5cad;
-      --json: #2d7bd1;
-
-      --card-bg: #ffffff;
+      --bg: #ffffff; --fg: #1c2733; --muted: #5f6d7a; --accent: #0b5cad;
+      --border: #d9dee3; --row: #f7f9fb; --chip-bg: #eef3f9;
+      --added: #0f7b28; --removed: #b00020; --ransom: #8a2be2; --admin: #8a6d1c;
+      --csv: #0b5cad; --json: #2d7bd1; --card-bg: #ffffff;
     }
     body.dark {
-      --bg: #0f141a;
-      --fg: #e8eef3;
-      --muted: #a0adb7;
-      --accent: #58a6ff;
-      --border: #2a3742;
-      --row: #111821;
-      --chip-bg: #0f253d;
-      --csv: #58a6ff;
-      --json: #8dbbff;
-      --card-bg: #0f141a;
+      --bg: #0f141a; --fg: #e8eef3; --muted: #a0adb7; --accent: #58a6ff;
+      --border: #2a3742; --row: #111821; --chip-bg: #0f253d;
+      --csv: #58a6ff; --json: #8dbbff; --card-bg: #0f141a;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0; background: var(--bg); color: var(--fg);
-      font: 15px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    }
+    body { margin: 0; background: var(--bg); color: var(--fg);
+      font: 15px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
     header {
       display: grid; grid-template-columns: auto 1fr auto; align-items: center;
       gap: 16px; padding: 24px clamp(16px, 5vw, 48px);
       border-bottom: 1px solid var(--border);
       background: linear-gradient(180deg, rgba(11,92,173,0.07), transparent);
     }
-    .brand {
-      display: flex; align-items: center; gap: 12px;
-    }
-    .brand-icon {
-      width: 36px; height: 36px; border-radius: 8px; background: var(--row);
-      display: grid; place-items: center; border: 1px solid var(--border);
-    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--row);
+      display: grid; place-items: center; border: 1px solid var(--border); }
     .brand-icon svg { width: 24px; height: 24px; }
     h1 { margin: 0; font-size: clamp(22px, 3vw, 30px); }
     .sub { color: var(--muted); font-size: 14px; }
     .controls { display: flex; gap: 10px; align-items: center; }
-    .btn {
-      background: var(--row); color: var(--fg);
-      border: 1px solid var(--border); padding: 8px 12px;
-      border-radius: 8px; cursor: pointer;
-    }
+    .btn { background: var(--row); color: var(--fg);
+      border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; cursor: pointer; }
     .btn:hover { border-color: var(--accent); }
 
     main { padding: 24px clamp(16px, 5vw, 48px); display: grid; gap: 24px; }
 
     /* Dashboard cards */
-    .dash {
-      display: grid; gap: 12px;
-      grid-template-columns: repeat(5, minmax(180px, 1fr));
-    }
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 14px;
-    }
-    .card h3 {
-      margin: 0 0 8px 0; font-size: 14px; color: var(--muted);
-    }
-    .nums {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
-    }
-    .num {
-      background: var(--row);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px;
-      text-align: center;
-      font-size: 13px;
-    }
+    .dash { display: grid; gap: 12px; grid-template-columns: repeat(5, minmax(180px, 1fr)); }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+    .card h3 { margin: 0 0 8px 0; font-size: 14px; color: var(--muted); }
+    .nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .num { background: var(--row); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px; text-align: center; font-size: 13px; }
     .num strong { font-size: 16px; display: block; }
-    .change-tags { margin-top: 8px; font-size: 12px; color: var(--muted); }
 
-    section {
-      border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg);
-    }
-    .section-header {
-      background: var(--row); padding: 12px 16px; border-bottom: 1px solid var(--border);
-      display: flex; align-items: baseline; justify-content: space-between;
-    }
+    section { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg); }
+    .section-header { background: var(--row); padding: 12px 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: baseline; justify-content: space-between; }
     .updated { color: var(--muted); font-size: 13px; }
 
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; }
-    thead th {
-      text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border);
-      color: var(--muted); white-space: nowrap;
-    }
-    tbody td {
-      padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top;
-    }
+    thead th { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+    tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
     tbody tr:nth-child(even) { background: var(--row); }
 
     .mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
-    .chip {
-      display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 12px;
-      background: var(--chip-bg); border: 1px solid var(--border); margin-right: 6px;
-    }
+    .chip { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 12px;
+      background: var(--chip-bg); border: 1px solid var(--border); margin-right: 6px; }
     .chip.csv { color: var(--csv); border-color: var(--csv); }
     .chip.json { color: var(--json); border-color: var(--json); }
     .chip.added { color: var(--added); border-color: var(--added); }
@@ -145,16 +88,10 @@
     details { margin-top: 8px; border-left: 3px solid var(--border); padding-left: 12px; }
     summary { cursor: pointer; color: var(--accent); }
     ul { margin: 8px 0 0 20px; }
-
     footer { padding: 16px clamp(16px, 5vw, 48px); color: var(--muted); border-top: 1px solid var(--border); }
 
-    @media (max-width: 1100px) {
-      .dash { grid-template-columns: repeat(3, minmax(180px, 1fr)); }
-    }
-    @media (max-width: 720px) {
-      header { grid-template-columns: 1fr auto; }
-      .dash { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
-    }
+    @media (max-width: 1100px) { .dash { grid-template-columns: repeat(3, minmax(180px, 1fr)); } }
+    @media (max-width: 720px) { header { grid-template-columns: 1fr auto; } .dash { grid-template-columns: repeat(2, minmax(160px, 1fr)); } }
   </style>
 </head>
 
@@ -162,11 +99,10 @@
   <header>
     <div class="brand">
       <div class="brand-icon" aria-hidden="true">
-        <!-- Header icon (same shield as favicon) -->
+        <!-- Header icon (shield) -->
         <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img">
           <defs><linearGradient id="gh" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#0b5cad"/><stop offset="1" stop-color="#2d7bd1"/>
-          </linearGradient></defs>
+            <stop offset="0" stop-color="#0b5cad"/><stop offset="1" stop-color="#2d7bd1"/></linearGradient></defs>
           <path fill="url(#gh)" d="M32 2l22 8v16c0 16-12 29-22 36-10-7-22-20-22-36V10l22-8z"/>
           <path fill="white" d="M32 14l10 4v8c0 9-6 16-10 19-4-3-10-10-10-19v-8l10-4z"/>
           <circle cx="32" cy="26" r="6" fill="#0b5cad"/>
@@ -174,7 +110,7 @@
       </div>
       <div>
         <h1>KEV Updates (Unified)</h1>
-        <div class="sub">Compact dashboard + unified timeline (JSON/CSV), CVE diffs, ransomware tag changes, admin field diffs.</div>
+        <div class="sub">Dashboard + unified timeline (JSON/CSV), CVE diffs, ransomware tag changes, admin field diffs.</div>
       </div>
     </div>
     <div class="controls">
@@ -187,51 +123,32 @@
   <main>
     <section>
       <div class="section-header">
-        <div>
-          <strong>Dashboard</strong>
-          <div id="dash-updated" class="updated"></div>
-        </div>
+        <div><strong>Dashboard</strong><div id="dash-updated" class="updated"></div></div>
       </div>
-
-      <div class="dash" id="dashboard">
-        <!-- Cards will be injected here -->
-      </div>
+      <div class="dash" id="dashboard"></div>
     </section>
 
     <!-- UNIFIED TIMELINE -->
     <section>
       <div class="section-header">
-        <div>
-          <strong>Unified Timeline (last 14 days)</strong>
-          <div id="updated" class="updated"></div>
-        </div>
+        <div><strong>Unified Timeline (last 14 days)</strong><div id="updated" class="updated"></div></div>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
-          <tr>
-            <th>Commit Time</th>
-            <th>Files Changed</th>
-            <th>Summary</th>
-            <th>Details (per CVE)</th>
-          </tr>
+          <tr><th>Commit Time</th><th>Files Changed</th><th>Summary</th><th>Details (per CVE)</th></tr>
           </thead>
-          <tbody id="timeline">
-            <tr><td colspan="4">Loading…</td></tr>
-          </tbody>
+          <tbody id="timeline"><tr><td colspan="4">Loading…</td></tr></tbody>
         </table>
       </div>
     </section>
   </main>
 
-  <footer>
-    Data loads live from GitHub on each view.
-  </footer>
+  <footer>Data loads live from GitHub on each view.</footer>
 
   <script>
     const OWNER = "cisagov";
     const REPO  = "kev-data";
-
     const PATHS = {
       JSON: "known_exploited_vulnerabilities.json",
       CSV:  "known_exploited_vulnerabilities.csv"
@@ -245,11 +162,11 @@
       document.body.classList.toggle("dark");
       localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
     };
-    document.getElementById("refresh").onclick = () => { loadUnified(); };
+    document.getElementById("refresh").onclick = () => loadUnified();
 
     const fmt = d => new Date(d).toLocaleString(undefined, { hour12: false });
 
-    /* ===== GitHub API Helpers ===== */
+    /* ===== GitHub API Helpers (rate‑friendly) ===== */
     async function fetchJSON(url) {
       const r = await fetch(url);
       if (!r.ok) throw new Error(`${r.status} ${url}`);
@@ -260,17 +177,13 @@
       if (!r.ok) throw new Error(`${r.status} ${url}`);
       return r.text();
     }
-    async function listRecentCommits(perPage=150) {
-      return fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}/commits?per_page=${perPage}`);
-    }
-    async function getCommitDetails(sha) {
-      return fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}/commits/${sha}`);
+
+    // File‑specific histories only (avoids GET /commits/{sha})
+    async function listHistoryForPath(path, perPage=120) {
+      return fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${encodeURIComponent(path)}&per_page=${perPage}`);
     }
     async function rawAt(sha, path) {
       return fetchText(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${sha}/${path}`);
-    }
-    async function listHistoryForPath(path, perPage=200) {
-      return fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${encodeURIComponent(path)}&per_page=${perPage}`);
     }
 
     /* ===== Parsing & Normalization ===== */
@@ -354,14 +267,14 @@
         if (c && p) {
           const entries = [];
 
-          // Ransomware tag (Option A: boolean field)
+          // Ransomware tag (Option A: boolean)
           const currRan = isJson ? Boolean(c.knownRansomwareCampaignUse) : null;
           const prevRan = isJson ? Boolean(p.knownRansomwareCampaignUse) : null;
           if (isJson && currRan !== prevRan) {
             entries.push({ type:"ransom", field:"knownRansomwareCampaignUse", from: prevRan, to: currRan });
           }
 
-          // Administrative changes (per-field diffs, excluding CVE ID & ransomware tag)
+          // Administrative changes: any other changed field
           const keys = new Set([...Object.keys(c), ...Object.keys(p)]);
           for (const key of keys) {
             if (key === "cveID" || key === "cveId" || key === "cve" || key === "CVE" || key === "knownRansomwareCampaignUse") continue;
@@ -397,11 +310,7 @@
     }
     function summaryChips(changeMap) {
       const types = new Set();
-      for (const arr of changeMap.values()) {
-        for (const ch of arr) {
-          types.add(ch.type);
-        }
-      }
+      for (const arr of changeMap.values()) for (const ch of arr) types.add(ch.type);
       const out = [];
       if (types.has("added"))  out.push(`<span class="chip added">added</span>`);
       if (types.has("removed")) out.push(`<span class="chip removed">removed</span>`);
@@ -415,15 +324,10 @@
       for (const id of ids) {
         const changes = changeMap.get(id);
         for (const ch of changes) {
-          if (ch.type === "added") {
-            items.push(`<li class="mono">${id} — added</li>`);
-          } else if (ch.type === "removed") {
-            items.push(`<li class="mono">${id} — removed</li>`);
-          } else if (ch.type === "ransom") {
-            items.push(`<li class="mono">${id} — ransomware tag changed (${displayVal(ch.from)} → ${displayVal(ch.to)})</li>`);
-          } else if (ch.type === "admin") {
-            items.push(`<li class="mono">${id} — admin change: ${ch.field} (${ch.from} → ${ch.to})</li>`);
-          }
+          if (ch.type === "added") items.push(`<li class="mono">${id} — added</li>`);
+          else if (ch.type === "removed") items.push(`<li class="mono">${id} — removed</li>`);
+          else if (ch.type === "ransom") items.push(`<li class="mono">${id} — ransomware tag changed (${displayVal(ch.from)} → ${displayVal(ch.to)})</li>`);
+          else if (ch.type === "admin") items.push(`<li class="mono">${id} — admin change: ${ch.field} (${ch.from} → ${ch.to})</li>`);
         }
       }
       if (!items.length) return "No CVE-level changes.";
@@ -440,9 +344,7 @@
 
     /* ===== Dashboard Aggregation ===== */
     function startOfToday(d = new Date()) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
-    function startOfWeek(d = new Date()) { // rolling last 7 days (not ISO week)
-      const x = new Date(); x.setHours(0,0,0,0); x.setDate(x.getDate() - 6); return x;
-    }
+    function startOfWeek(d = new Date()) { const x = new Date(); x.setHours(0,0,0,0); x.setDate(x.getDate() - 6); return x; } // last 7 days
     function startOfMonth(d = new Date()) { const x = new Date(d.getFullYear(), d.getMonth(), 1); x.setHours(0,0,0,0); return x; }
     function startOfCalendarYear(d = new Date()) { const x = new Date(d.getFullYear(), 0, 1); x.setHours(0,0,0,0); return x; }
     function startOfFiscalYear(d = new Date()) {
@@ -462,13 +364,11 @@
           else if (r.flags.json) S.files.json++;
           else if (r.flags.csv) S.files.csv++;
 
-          for (const arr of r.changes.values()) {
-            for (const ch of arr) {
-              if (ch.type === "added") S.added++;
-              else if (ch.type === "removed") S.removed++;
-              else if (ch.type === "ransom") S.ransom++;
-              else if (ch.type === "admin") S.admin++;
-            }
+          for (const arr of r.changes.values()) for (const ch of arr) {
+            if (ch.type === "added") S.added++;
+            else if (ch.type === "removed") S.removed++;
+            else if (ch.type === "ransom") S.ransom++;
+            else if (ch.type === "admin") S.admin++;
           }
         }
       }
@@ -492,7 +392,6 @@
         </div>
       </div>`;
     }
-
     function renderDashboard(rows) {
       const now = new Date();
       const todayStart = startOfToday(now);
@@ -520,46 +419,67 @@
       document.getElementById("dash-updated").textContent = "Last updated: " + fmt(new Date());
     }
 
-    /* ===== Unified Loader (14-day table + dashboard) ===== */
+    /* ===== Unified Loader (14‑day table + dashboard) ===== */
+    const rawCache = new Map(); // key: `${sha}:${path}` -> file text
+
+    async function cachedRawAt(sha, path) {
+      const key = `${sha}:${path}`;
+      if (rawCache.has(key)) return rawCache.get(key);
+      const text = await rawAt(sha, path);
+      rawCache.set(key, text);
+      return text;
+    }
+
+    function findPrevSha(history, sha) {
+      const idx = history.findIndex(c => c.sha === sha);
+      const prev = idx >= 0 ? history[idx+1] : null;
+      return prev ? prev.sha : null;
+    }
+
+    function mergeChangeMaps(baseMap, newMap) {
+      const merged = new Map(baseMap);
+      for (const [id, list] of newMap.entries()) {
+        if (!merged.has(id)) merged.set(id, list);
+        else merged.set(id, merged.get(id).concat(list));
+      }
+      return merged;
+    }
+
     async function loadUnified() {
       const tbody = document.getElementById("timeline");
       const updated = document.getElementById("updated");
-
       try {
-        // Commit discovery: pull enough to cover all dashboard ranges with diff merges
-        const recent = await listRecentCommits(200); // increase if necessary
-        const commitsWithFiles = [];
+        // 1) List histories for each file (avoid per‑commit detail calls)
+        const [jsonHist, csvHist] = await Promise.all([
+          listHistoryForPath(PATHS.JSON, 120),
+          listHistoryForPath(PATHS.CSV, 120)
+        ]);
 
-        // Identify commits touching JSON or CSV
-        for (const c of recent) {
-          const details = await getCommitDetails(c.sha);
-          const changedPaths = (details.files || []).map(f => f.filename);
-          const touchedJson = changedPaths.includes(PATHS.JSON);
-          const touchedCsv  = changedPaths.includes(PATHS.CSV);
-          if (touchedJson || touchedCsv) {
-            commitsWithFiles.push({ base: c, touchedJson, touchedCsv });
-          }
-        }
+        // 2) Build a unified commit set with flags
+        const bySha = new Map(); // sha -> { sha, time, flags:{json,csv} }
+        const addCommit = (c, isJson) => {
+          const sha = c.sha;
+          const time = c.commit?.author?.date || c.commit?.committer?.date;
+          if (!bySha.has(sha)) bySha.set(sha, { sha, time, flags: { json: false, csv: false } });
+          bySha.get(sha).flags[isJson ? "json" : "csv"] = true;
+        };
+        jsonHist.forEach(c => addCommit(c, true));
+        csvHist.forEach(c => addCommit(c, false));
 
-        // Build file-specific histories to find "previous" touching commit
-        const jsonHist = await listHistoryForPath(PATHS.JSON, 200);
-        const csvHist  = await listHistoryForPath(PATHS.CSV, 200);
+        // 3) Sort newest first, then filter to last 14 days
+        const commits = Array.from(bySha.values()).sort((a,b)=> new Date(b.time) - new Date(a.time));
+        const cutoff = Date.now() - 14*24*60*60*1000;
+        const recentRows = commits.filter(c => new Date(c.time).getTime() >= cutoff);
 
-        // Build rows (commitTime, fileFlags, combinedChanges)
+        // 4) For each recent commit, compute diffs for touched files (using cached raw fetches)
         const rows = [];
-        for (const item of commitsWithFiles) {
-          const sha = item.base.sha;
-          const commitTime = item.base.commit?.author?.date || item.base.commit?.committer?.date;
-
+        for (const item of recentRows) {
           let combined = new Map();
-          const fileFlags = { json: false, csv: false };
 
-          // JSON diff
-          if (item.touchedJson) {
-            fileFlags.json = true;
-            const currText = await rawAt(sha, PATHS.JSON);
-            const prevSha  = findPrevSha(jsonHist, sha);
-            const prevText = prevSha ? await rawAt(prevSha, PATHS.JSON) : null;
+          if (item.flags.json) {
+            const currText = await cachedRawAt(item.sha, PATHS.JSON);
+            const prevSha  = findPrevSha(jsonHist, item.sha);
+            const prevText = prevSha ? await cachedRawAt(prevSha, PATHS.JSON) : null;
 
             const currMap = parseKEVJson(currText);
             const prevMap = prevText ? parseKEVJson(prevText) : new Map();
@@ -567,13 +487,10 @@
             const diffMap = diffRecords(currMap, prevMap, true);
             combined = mergeChangeMaps(combined, diffMap);
           }
-
-          // CSV diff
-          if (item.touchedCsv) {
-            fileFlags.csv = true;
-            const currText = await rawAt(sha, PATHS.CSV);
-            const prevSha  = findPrevSha(csvHist, sha);
-            const prevText = prevSha ? await rawAt(prevSha, PATHS.CSV) : null;
+          if (item.flags.csv) {
+            const currText = await cachedRawAt(item.sha, PATHS.CSV);
+            const prevSha  = findPrevSha(csvHist, item.sha);
+            const prevText = prevSha ? await cachedRawAt(prevSha, PATHS.CSV) : null;
 
             const currMap = parseCsv(currText);
             const prevMap = prevText ? parseCsv(prevText) : new Map();
@@ -582,37 +499,17 @@
             combined = mergeChangeMaps(combined, diffMap);
           }
 
-          rows.push({ time: commitTime, flags: fileFlags, changes: combined });
+          rows.push({ time: item.time, flags: item.flags, changes: combined });
         }
 
-        // Render dashboard (all rows)
+        // 5) Render dashboard (over entire unified set) + 14‑day table
         renderDashboard(rows);
-
-        // Render 14-day unified table
-        const days14 = 14 * 24 * 60 * 60 * 1000;
-        const cutoff = Date.now() - days14;
-        const recentRows = rows.filter(r => new Date(r.time).getTime() >= cutoff);
-
-        const tableRows = recentRows.map(r => renderRow(r.time, r.flags, r.changes));
+        const tableRows = rows.map(r => renderRow(r.time, r.flags, r.changes));
         tbody.innerHTML = tableRows.join("") || `<tr><td colspan="4">No JSON/CSV updates in the last 14 days.</td></tr>`;
         updated.textContent = "Last updated: " + fmt(new Date());
       } catch (e) {
         tbody.innerHTML = `<tr><td colspan="4">Error loading updates: ${e.message}</td></tr>`;
       }
-    }
-
-    function findPrevSha(historyList, currentSha) {
-      const idx = historyList.findIndex(c => c.sha === currentSha);
-      const prev = idx >= 0 ? historyList[idx+1] : null;
-      return prev ? prev.sha : null;
-    }
-    function mergeChangeMaps(baseMap, newMap) {
-      const merged = new Map(baseMap);
-      for (const [id, list] of newMap.entries()) {
-        if (!merged.has(id)) merged.set(id, list);
-        else merged.set(id, merged.get(id).concat(list));
-      }
-      return merged;
     }
 
     // Initial load
