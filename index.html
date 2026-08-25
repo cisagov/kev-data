@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>KEV Updates – Unified Timeline (Last 14 Days)</title>
+  <title>KEV Commit History</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Favicon: shield-style professional icon (replace with official logo anytime). -->
@@ -55,6 +55,19 @@
 
     main { padding: 24px clamp(16px, 5vw, 48px); display: grid; gap: 24px; }
 
+    /* Filter bar */
+    .filter-bar {
+      display: grid; gap: 12px; grid-template-columns: 1fr 1fr auto auto;
+      align-items: end; padding: 12px; border: 1px solid var(--border);
+      border-radius: 12px; background: var(--row);
+    }
+    .filter-bar label { font-size: 13px; color: var(--muted); }
+    .filter-bar input[type="date"] {
+      width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--bg); color: var(--fg);
+    }
+    .disclaimer { grid-column: 1 / -1; font-size: 12px; color: var(--muted); }
+
     section { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg); }
     .section-header { background: var(--row); padding: 12px 16px; border-bottom: 1px solid var(--border);
       display: flex; align-items: baseline; justify-content: space-between; }
@@ -82,7 +95,10 @@
     ul { margin: 8px 0 0 20px; }
 
     footer { padding: 16px clamp(16px, 5vw, 48px); color: var(--muted); border-top: 1px solid var(--border); }
-    @media (max-width: 720px) { header { grid-template-columns: 1fr auto; } }
+    @media (max-width: 820px) {
+      header { grid-template-columns: 1fr auto; }
+      .filter-bar { grid-template-columns: 1fr 1fr; }
+    }
   </style>
 </head>
 
@@ -100,8 +116,8 @@
         </svg>
       </div>
       <div>
-        <h1>KEV Updates (Unified)</h1>
-        <div class="sub">Last 14 days of JSON/CSV commits; CVE diffs (Added, Removed, Ransomware tag, Admin field changes).</div>
+        <h1>KEV Commit History</h1>
+        <div class="sub">Unified JSON/CSV commit view, CVE diffs (Added/Removed/Ransomware/Admin), last 14 days by default.</div>
       </div>
     </div>
     <div class="controls">
@@ -111,11 +127,26 @@
   </header>
 
   <main>
+    <!-- FILTER BAR -->
+    <div class="filter-bar" role="region" aria-label="Date range filters">
+      <div>
+        <label for="fromDate">From</label>
+        <input id="fromDate" type="date" />
+      </div>
+      <div>
+        <label for="toDate">To</label>
+        <input id="toDate" type="date" />
+      </div>
+      <button id="applyRange" class="btn">Apply Date Range</button>
+      <button id="resetRange" class="btn">Reset to Last 14 Days</button>
+      <div id="rangeNote" class="disclaimer"></div>
+    </div>
+
     <!-- UNIFIED TIMELINE -->
     <section>
       <div class="section-header">
         <div>
-          <strong>Unified Timeline (last 14 days)</strong>
+          <strong>Commits in Selected Range</strong>
           <div id="updated" class="updated"></div>
         </div>
       </div>
@@ -155,7 +186,7 @@
       document.body.classList.toggle("dark");
       localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
     };
-    document.getElementById("refresh").onclick = () => loadUnified();
+    document.getElementById("refresh").onclick = () => loadUnified(currentRange.from, currentRange.to);
 
     const fmt = d => new Date(d).toLocaleString(undefined, { hour12: false });
 
@@ -170,10 +201,22 @@
       if (!r.ok) throw new Error(`${r.status} ${url}`);
       return r.text();
     }
-
-    // File‑specific histories only (avoids GET /commits/{sha})
-    async function listHistoryForPath(path, perPage=120) {
-      return fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${encodeURIComponent(path)}&per_page=${perPage}`);
+    async function listHistoryForPathPaged(path, { perPage=100, maxPages=2, stopIfOlderThan=null }) {
+      const results = [];
+      for (let page = 1; page <= maxPages; page++) {
+        const url = `https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${encodeURIComponent(path)}&per_page=${perPage}&page=${page}`;
+        const batch = await fetchJSON(url);
+        if (!Array.isArray(batch) || batch.length === 0) break;
+        results.push(...batch);
+        // If we only need recent commits, stop once the oldest in this batch is older than our start date
+        if (stopIfOlderThan) {
+          const oldest = batch[batch.length - 1];
+          const oldestDate = new Date(oldest.commit?.author?.date || oldest.commit?.committer?.date);
+          if (oldestDate < stopIfOlderThan) break;
+        }
+        if (batch.length < perPage) break; // no more pages
+      }
+      return results;
     }
     async function rawAt(sha, path) {
       return fetchText(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${sha}/${path}`);
@@ -321,22 +364,70 @@
           if (ch.type === "added") items.push(`<li class="mono">${id} — added</li>`);
           else if (ch.type === "removed") items.push(`<li class="mono">${id} — removed</li>`);
           else if (ch.type === "ransom") items.push(`<li class="mono">${id} — ransomware tag changed (${displayVal(ch.from)} → ${displayVal(ch.to)})</li>`);
-          else if (ch.type === "admin") items.push(`<li class="mono">${id} — admin change: ${ch.field} (${ch.from} → ${ch.to})</li>`);
+          else if (ch.type === "admin") items.push(`<li class="mono">${id} — admin change: ${ch.field} (${displayVal(ch.from)} → ${displayVal(ch.to)})</li>`);
         }
       }
       if (!items.length) return "No CVE-level changes.";
       return `<details><summary>View CVE details</summary><ul>${items.join("")}</ul></details>`;
     }
-    function renderRow(commitTime, fileFlags, combinedChanges) {
+    function renderRow(commitTime, commitUrl, fileFlags, combinedChanges) {
+      const timeLink = commitUrl ? `${commitUrl}${fmt(commitTime)}</a>` : `<span class="mono">${fmt(commitTime)}</span>`;
       return `<tr>
-        <td class="mono">${fmt(commitTime)}</td>
+        <td>${timeLink}</td>
         <td>${chipsForFiles(fileFlags)}</td>
         <td>${summaryChips(combinedChanges) || "No changes"}</td>
         <td>${detailsList(combinedChanges)}</td>
       </tr>`;
     }
 
-    /* ===== Unified Loader (14‑day table) ===== */
+    /* ===== Date Range Handling ===== */
+    const rangeNote = document.getElementById("rangeNote");
+    const fromInput = document.getElementById("fromDate");
+    const toInput   = document.getElementById("toDate");
+    const applyBtn  = document.getElementById("applyRange");
+    const resetBtn  = document.getElementById("resetRange");
+
+    // Default: last 14 days
+    const DAY_MS = 24*60*60*1000;
+    function defaultRange() {
+      const now = new Date();
+      const to   = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // today at local midnight boundary
+      const from = new Date(to.getTime() - 14*DAY_MS);
+      return { from, to };
+    }
+    let currentRange = defaultRange();
+
+    function setFilterInputs(range) {
+      const toISO = d => new Date(d.getTime() - d.getTimezoneOffset()*60*1000).toISOString().slice(0,10);
+      fromInput.value = toISO(range.from);
+      toInput.value   = toISO(range.to);
+    }
+
+    applyBtn.onclick = async () => {
+      try {
+        const from = new Date(fromInput.value);
+        const to   = new Date(toInput.value);
+        if (isNaN(from) || isNaN(to)) throw new Error("Please select valid dates for both From and To.");
+        if (from > to) throw new Error("From date cannot be later than To date.");
+        currentRange = { from, to };
+        const spanDays = Math.ceil((to - from) / DAY_MS) + 1;
+        rangeNote.textContent = spanDays > 60
+          ? "Note: Loading a large date range may take additional time to process results."
+          : "";
+        await loadUnified(from, to);
+      } catch (e) {
+        rangeNote.textContent = e.message;
+      }
+    };
+
+    resetBtn.onclick = async () => {
+      currentRange = defaultRange();
+      setFilterInputs(currentRange);
+      rangeNote.textContent = "";
+      await loadUnified(currentRange.from, currentRange.to);
+    };
+
+    /* ===== Unified Loader (range-aware) ===== */
     const rawCache = new Map(); // key: `${sha}:${path}` -> file text
     async function cachedRawAt(sha, path) {
       const key = `${sha}:${path}`;
@@ -345,64 +436,80 @@
       rawCache.set(key, text);
       return text;
     }
+
     function findPrevSha(history, sha) {
       const idx = history.findIndex(c => c.sha === sha);
       const prev = idx >= 0 ? history[idx+1] : null;
       return prev ? prev.sha : null;
     }
+
     function mergeChangeMaps(baseMap, newMap) {
       const merged = new Map(baseMap);
-    
       for (const [id, newList] of newMap.entries()) {
-    if (!merged.has(id)) {
-      merged.set(id, newList);
-    } else {
-      const existing = merged.get(id);
-      const combined = [...existing];
-
-      // Add only entries that don’t already exist in the array
-      newList.forEach(entry => {
-        const serialized = JSON.stringify(entry);
-        const exists = existing.some(e => JSON.stringify(e) === serialized);
-        if (!exists) combined.push(entry);
-      });
-
-      merged.set(id, combined);
+        if (!merged.has(id)) {
+          merged.set(id, newList);
+        } else {
+          const existing = merged.get(id);
+          const combined = [...existing];
+          // De-duplicate identical entries (JSON + CSV overlap)
+          newList.forEach(entry => {
+            const serialized = JSON.stringify(entry);
+            const exists = existing.some(e => JSON.stringify(e) === serialized);
+            if (!exists) combined.push(entry);
+          });
+          merged.set(id, combined);
+        }
+      }
+      return merged;
     }
-  }
 
-  return merged;
-}
+    function fmtISODate(d) {
+      return new Date(d).toISOString();
+    }
 
-    async function loadUnified() {
+    async function loadUnified(fromDate, toDate) {
       const tbody = document.getElementById("timeline");
       const updated = document.getElementById("updated");
+      tbody.innerHTML = `<tr><td colspan="4">Loading…</td></tr>`;
+
       try {
-        // 1) List histories for each file (rate‑friendly; no GET /commits/{sha})
+        // Decide pagination depth based on range length
+        const spanDays = Math.ceil((toDate - fromDate) / DAY_MS) + 1;
+        const needsDeepPaging = spanDays > 14;
+        const pagingPlan = {
+          perPage: 100,
+          maxPages: needsDeepPaging ? 10 : 2, // up to 1000 commits per file for large ranges
+          stopIfOlderThan: needsDeepPaging ? null : fromDate // stop early for default shorter ranges
+        };
+
+        // Fetch histories (rate-friendly)
         const [jsonHist, csvHist] = await Promise.all([
-          listHistoryForPath(PATHS.JSON, 120),
-          listHistoryForPath(PATHS.CSV, 120)
+          listHistoryForPathPaged(PATHS.JSON, pagingPlan),
+          listHistoryForPathPaged(PATHS.CSV, pagingPlan)
         ]);
 
-        // 2) Build a unified commit set with flags
-        const bySha = new Map(); // sha -> { sha, time, flags:{json,csv} }
+        // Build unified commit set with flags and urls
+        const bySha = new Map(); // sha -> { sha, time, url, flags:{json,csv} }
         const addCommit = (c, isJson) => {
           const sha = c.sha;
           const time = c.commit?.author?.date || c.commit?.committer?.date;
-          if (!bySha.has(sha)) bySha.set(sha, { sha, time, flags: { json: false, csv: false } });
+          const url  = c.html_url; // hyperlink to specific commit
+          if (!bySha.has(sha)) bySha.set(sha, { sha, time, url, flags: { json: false, csv: false } });
           bySha.get(sha).flags[isJson ? "json" : "csv"] = true;
         };
         jsonHist.forEach(c => addCommit(c, true));
         csvHist.forEach(c => addCommit(c, false));
 
-        // 3) Sort newest first, then filter to last 14 days
+        // Sort newest first, then filter to selected range [fromDate..toDate]
         const commits = Array.from(bySha.values()).sort((a,b)=> new Date(b.time) - new Date(a.time));
-        const cutoff = Date.now() - 14*24*60*60*1000;
-        const recentRows = commits.filter(c => new Date(c.time).getTime() >= cutoff);
+        const inRange = commits.filter(c => {
+          const t = new Date(c.time).getTime();
+          return t >= fromDate.getTime() && t <= (toDate.getTime() + DAY_MS - 1);
+        });
 
-        // 4) For each recent commit, compute diffs for touched files (using cached raw fetches)
+        // Compute diffs for touched files in-range (cached raw fetches)
         const rows = [];
-        for (const item of recentRows) {
+        for (const item of inRange) {
           let combined = new Map();
 
           if (item.flags.json) {
@@ -428,20 +535,29 @@
             combined = mergeChangeMaps(combined, diffMap);
           }
 
-          rows.push({ time: item.time, flags: item.flags, changes: combined });
+          rows.push({ time: item.time, url: item.url, flags: item.flags, changes: combined });
         }
 
-        // 5) Render 14‑day unified table
-        const tableRows = rows.map(r => renderRow(r.time, r.flags, r.changes));
-        tbody.innerHTML = tableRows.join("") || `<tr><td colspan="4">No JSON/CSV updates in the last 14 days.</td></tr>`;
-        updated.textContent = "Last updated: " + fmt(new Date());
+        // Render table
+        const tableRows = rows.map(r => renderRow(r.time, r.url, r.flags, r.changes));
+        tbody.innerHTML = tableRows.join("") || `<tr><td colspan="4">No JSON/CSV updates in the selected range.</td></tr>`;
+        updated.textContent = `Last updated: ${fmt(new Date())} — Range: ${fmt(fromDate)} → ${fmt(toDate)}`;
+
+        // Optional professional note for long ranges
+        if (needsDeepPaging) {
+          rangeNote.textContent = "Note: Loading extended date ranges may take additional time to process results.";
+        }
       } catch (e) {
         tbody.innerHTML = `<tr><td colspan="4">Error loading updates: ${e.message}</td></tr>`;
       }
     }
 
-    // Initial load
-    loadUnified();
+    // Initialize default range (last 14 days), set inputs, load
+    (async function init() {
+      currentRange = defaultRange();
+      setFilterInputs(currentRange);
+      await loadUnified(currentRange.from, currentRange.to);
+    })();
   </script>
 </body>
 </html>
