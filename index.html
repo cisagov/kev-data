@@ -402,8 +402,7 @@ function detailsList(changeMap) {
 }
 function renderRow(commitTime, commitUrl, fileFlags, combinedChanges) {
   const timeLink = commitUrl
-    ? `<a href="${commitUrl}" target="_blank" rel="noopener noreferrer" class="mono">${fmt(commitTime)}</a>`;
-    : `${fmt(commitTime)}`;
+    ? `<a href="${commitUrl}" target="_blank" rel="noopener noreferrer" class="mono">${fmt(commitTime)}</a>';
 
   return `<tr>
     <td>${timeLink}</td>
