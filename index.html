@@ -387,7 +387,7 @@ function summaryChips(changeMap) {
 }
 function detailsList(changeMap) {
   const items = [];
-  const ids = Array.from(changeMap.keys()).sort((a,b)=>String(a).localeLocale(b));
+  const ids = Array.from(changeMap.keys()).sort((a,b)=>String(a).localeCompare(String(b)));
   for (const id of ids) {
     const changes = changeMap.get(id);
     for (const ch of changes) {
