@@ -401,13 +401,16 @@ function detailsList(changeMap) {
   return `<details><summary>View CVE details</summary><ul>${items.join("")}</ul></details>`;
 }
   function renderRow(commitTime, fileFlags, combinedChanges) {
-    return `<tr>
-      <td class="mono">${fmt(commitTime)}</td>
+  return `
+    <tr>
+      <td><a href="${commitUrl}" class="mono">${fmt(commitTime)}</a></td>
       <td>${chipsForFiles(fileFlags)}</td>
       <td>${summaryChips(combinedChanges) || "No changes"}</td>
       <td>${detailsList(combinedChanges)}</td>
-      </tr>`;
+    </tr>
+  `;
 }
+
 /* ===== Date Range ===== */
 const rangeNote = document.getElementById("rangeNote");
 const fromInput = document.getElementById("fromDate");
