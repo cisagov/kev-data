@@ -571,7 +571,7 @@ async function loadUnified(fromDate, toDate) {
     }
 
     const tableRows = rows.map(r =>
-      renderRow(r.time,r.url,r.flags,r.changes)
+      renderRow(r.time, r.flags, r.changes)
     );
 
     tbody.innerHTML =
