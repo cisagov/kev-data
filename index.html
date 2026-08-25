@@ -402,7 +402,7 @@ function detailsList(changeMap) {
 }
 function renderRow(commitTime, commitUrl, fileFlags, combinedChanges) {
   const timeLink = commitUrl
-    ? `${commitUrl}<span class="mono">${fmt(commitTime)}</span></a>`
+    ? `<a href="${commitUrl}" class="mono">${fmt(commitTime)}</a>`;
     : `${fmt(commitTime)}`;
 
   return `<tr>
@@ -412,7 +412,6 @@ function renderRow(commitTime, commitUrl, fileFlags, combinedChanges) {
     <td>${detailsList(combinedChanges)}</td>
   </tr>`;
 }
-
 /* ===== Date Range ===== */
 const rangeNote = document.getElementById("rangeNote");
 const fromInput = document.getElementById("fromDate");
