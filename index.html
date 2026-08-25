@@ -400,16 +400,13 @@ function detailsList(changeMap) {
   if (!items.length) return "No CVE-level changes.";
   return `<details><summary>View CVE details</summary><ul>${items.join("")}</ul></details>`;
 }
-function renderRow(commitTime, commitUrl, fileFlags, combinedChanges) {
-  const timeLink = commitUrl
-    ? `<a href="${commitUrl}" target="_blank" rel="noopener noreferrer" class="mono">${fmt(commitTime)}</a>';
-
-  return `<tr>
-    <td>${timeLink}</td>
-    <td>${chipsForFiles(fileFlags)}</td>
-    <td>${summaryChips(combinedChanges) || "No changes"}</td>
-    <td>${detailsList(combinedChanges)}</td>
-  </tr>`;
+  function renderRow(commitTime, fileFlags, combinedChanges) {
+    return `<tr>
+      <td class="mono">${fmt(commitTime)}</td>
+      <td>${chipsForFiles(fileFlags)}</td>
+      <td>${summaryChips(combinedChanges) || "No changes"}</td>
+      <td>${detailsList(combinedChanges)}</td>
+      </tr>`;
 }
 /* ===== Date Range ===== */
 const rangeNote = document.getElementById("rangeNote");
