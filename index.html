@@ -403,7 +403,7 @@ function detailsList(changeMap) {
   function renderRow(commitTime, fileFlags, combinedChanges) {
   return `
     <tr>
-      <td><a href="${commitUrl}" class="mono">${fmt(commitTime)}</a></td>
+      <td>${commitTime}</td>
       <td>${chipsForFiles(fileFlags)}</td>
       <td>${summaryChips(combinedChanges) || "No changes"}</td>
       <td>${detailsList(combinedChanges)}</td>
