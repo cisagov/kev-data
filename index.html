@@ -381,16 +381,18 @@
       return `<details><summary>View CVE details</summary><ul>${items.join("")}</ul></details>`;
     }
     function renderRow(commitTime, commitUrl, fileFlags, combinedChanges) {
-    const timeLink = commitUrl
-      ? `<a href="${commitUrl}" class="mono"><span class="mono">${fmt(commitTime)}</span></a>;
+      const timeLink = commitUrl
+        ? `${commitUrl}<span class="mono">${fmt(commitTime)}</span></a>`
+        : `${fmt(commitTime)}`;
 
-    return `<tr>
-      <td>${timeLink}</td>
-      <td>${chipsForFiles(fileFlags)}</td>
-      <td>${summaryChips(combinedChanges) || "No changes"}</td>
-      <td>${detailsList(combinedChanges)}</td>
-    </tr>`;
+      return `<tr>
+        <td>${timeLink}</td>
+        <td>${chipsForFiles(fileFlags)}</td>
+        <td>${summaryChips(combinedChanges) || "No changes"}</td>
+        <td>${detailsList(combinedChanges)}</td>
+      </tr>`;
     }
+
     /* ===== Date Range Handling ===== */
     const rangeNote = document.getElementById("rangeNote");
     const fromInput = document.getElementById("fromDate");
