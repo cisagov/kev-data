@@ -55,6 +55,17 @@
 
     main { padding: 24px clamp(16px, 5vw, 48px); display: grid; gap: 24px; }
 
+
+    header {
+      position: relative;
+    }
+
+    .controls {
+      position: absolute;
+      top: 16px;
+      right: 24px;
+    }
+    
     /* Filter bar */
     .filter-bar {
       display: grid; gap: 12px; grid-template-columns: 1fr 1fr auto auto;
@@ -122,8 +133,7 @@
     </div>
     <div class="controls">
       <button id="themeToggle" class="btn" aria-label="Toggle theme">🌙 / 🌞</button>
-      <button id="refresh" class="btn" aria-label="Refresh data">⟳ Refresh</button>
-    </div>
+      </div>
   </header>
 
   <main>
@@ -371,8 +381,9 @@
       return `<details><summary>View CVE details</summary><ul>${items.join("")}</ul></details>`;
     }
     function renderRow(commitTime, commitUrl, fileFlags, combinedChanges) {
-      const timeLink = commitUrl ? `${commitUrl}${fmt(commitTime)}</a>` : `<span class="mono">${fmt(commitTime)}</span>`;
-      return `<tr>
+    const timeLink = commitUrl
+      ? `<a href="${commitUrl}" class="mono">${fmt(commitTime)}</ao">${fmt(commitTime)}</span>`;
+    return `<tr>
         <td>${timeLink}</td>
         <td>${chipsForFiles(fileFlags)}</td>
         <td>${summaryChips(combinedChanges) || "No changes"}</td>
