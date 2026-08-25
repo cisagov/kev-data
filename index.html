@@ -181,396 +181,426 @@
   <footer>Data loads live from GitHub on each view.</footer>
 
   <script>
-    const OWNER = "cisagov";
-    const REPO  = "kev-data";
-    const PATHS = {
-      JSON: "known_exploited_vulnerabilities.json",
-      CSV:  "known_exploited_vulnerabilities.csv"
-    };
+const OWNER = "cisagov";
+const REPO  = "kev-data";
+const PATHS = {
+  JSON: "known_exploited_vulnerabilities.json",
+  CSV:  "known_exploited_vulnerabilities.csv"
+};
 
-    /* ===== Theme ===== */
-    const themeBtn = document.getElementById("themeToggle");
-    const saved = localStorage.getItem("theme") || "light";
-    if (saved === "dark") document.body.classList.add("dark");
-    themeBtn.onclick = () => {
-      document.body.classList.toggle("dark");
-      localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
-    };
-    document.getElementById("refresh").onclick = () => loadUnified(currentRange.from, currentRange.to);
+/* ===== Theme ===== */
+const themeBtn = document.getElementById("themeToggle");
+const saved = localStorage.getItem("theme") || "light";
+if (saved === "dark") document.body.classList.add("dark");
+themeBtn.onclick = () => {
+  document.body.classList.toggle("dark");
+  localStorage.setItem(
+    "theme",
+    document.body.classList.contains("dark") ? "dark" : "light"
+  );
+};
 
-    const fmt = d => new Date(d).toLocaleString(undefined, { hour12: false });
+const fmt = d => new Date(d).toLocaleString(undefined, { hour12: false });
 
-    /* ===== GitHub API Helpers (rate‑friendly) ===== */
-    async function fetchJSON(url) {
-      const r = await fetch(url);
-      if (!r.ok) throw new Error(`${r.status} ${url}`);
-      return r.json();
+/* ===== GitHub Helpers ===== */
+async function fetchJSON(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${r.status} ${url}`);
+  return r.json();
+}
+async function fetchText(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${r.status} ${url}`);
+  return r.text();
+}
+async function listHistoryForPathPaged(path, { perPage=100, maxPages=2, stopIfOlderThan=null }) {
+  const results = [];
+  for (let page = 1; page <= maxPages; page++) {
+    const url = `https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${encodeURIComponent(path)}&per_page=${perPage}&page=${page}`;
+    const batch = await fetchJSON(url);
+    if (!Array.isArray(batch) || batch.length === 0) break;
+    results.push(...batch);
+
+    if (stopIfOlderThan) {
+      const oldest = batch[batch.length - 1];
+      const oldestDate = new Date(oldest.commit?.author?.date || oldest.commit?.committer?.date);
+      if (oldestDate < stopIfOlderThan) break;
     }
-    async function fetchText(url) {
-      const r = await fetch(url);
-      if (!r.ok) throw new Error(`${r.status} ${url}`);
-      return r.text();
+    if (batch.length < perPage) break;
+  }
+  return results;
+}
+async function rawAt(sha, path) {
+  return fetchText(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${sha}/${path}`);
+}
+
+/* ===== Parsing ===== */
+function normalizeValue(val) {
+  if (val === undefined || val === null) return null;
+  if (typeof val === "string") {
+    const s = val.trim();
+    return s.length ? s.replace(/\s+/g, " ") : null;
+  }
+  if (typeof val === "number" || typeof val === "boolean") return val;
+  if (Array.isArray(val)) {
+    const norm = val.map(v => normalizeValue(v)).filter(v => v !== null);
+    return norm.sort((a,b)=>String(a).localeCompare(String(b)));
+  }
+  if (typeof val === "object") {
+    const keys = Object.keys(val).sort();
+    const obj = {};
+    for (const k of keys) obj[k] = normalizeValue(val[k]);
+    return obj;
+  }
+  return val;
+}
+function eq(a,b) { return JSON.stringify(normalizeValue(a)) === JSON.stringify(normalizeValue(b)); }
+
+/* JSON Parser */
+function parseKEVJson(text) {
+  const data = JSON.parse(text);
+  const rows = Array.isArray(data) ? data :
+               (Array.isArray(data.vulnerabilities) ? data.vulnerabilities : []);
+  const map = new Map();
+  for (const row of rows) {
+    const id = row.cveID || row.cveId || row.cve || row.CVE;
+    if (!id) continue;
+    map.set(String(id), row);
+  }
+  return map;
+}
+
+/* CSV Parser */
+function parseCsv(text) {
+  const out = [];
+  let i=0, field="", row=[], inQ=false;
+  while (i < text.length) {
+    const c=text[i++];
+    if (inQ) {
+      if (c === `"`) {
+        if (text[i] === `"`) { field+=`"`; i++; } else { inQ=false; }
+      } else field+=c;
+    } else {
+      if (c === `,`) { row.push(field); field=""; }
+      else if (c === `\n`) { row.push(field); field=""; out.push(row); row=[]; }
+      else if (c === `\r`) {}
+      else if (c === `"`) inQ=true;
+      else field+=c;
     }
-    async function listHistoryForPathPaged(path, { perPage=100, maxPages=2, stopIfOlderThan=null }) {
-      const results = [];
-      for (let page = 1; page <= maxPages; page++) {
-        const url = `https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${encodeURIComponent(path)}&per_page=${perPage}&page=${page}`;
-        const batch = await fetchJSON(url);
-        if (!Array.isArray(batch) || batch.length === 0) break;
-        results.push(...batch);
-        // If we only need recent commits, stop once the oldest in this batch is older than our start date
-        if (stopIfOlderThan) {
-          const oldest = batch[batch.length - 1];
-          const oldestDate = new Date(oldest.commit?.author?.date || oldest.commit?.committer?.date);
-          if (oldestDate < stopIfOlderThan) break;
-        }
-        if (batch.length < perPage) break; // no more pages
-      }
-      return results;
-    }
-    async function rawAt(sha, path) {
-      return fetchText(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${sha}/${path}`);
-    }
+  }
+  if (field.length || row.length) { row.push(field); out.push(row); }
 
-    /* ===== Parsing & Normalization (avoid false positives) ===== */
-    function normalizeValue(val) {
-      if (val === undefined || val === null) return null;
-      if (typeof val === "string") {
-        const s = val.trim();
-        return s.length ? s.replace(/\s+/g, " ") : null; // treat empty as null
-      }
-      if (typeof val === "number" || typeof val === "boolean") return val;
-      if (Array.isArray(val)) {
-        const norm = val.map(v => normalizeValue(v)).filter(v => v !== null);
-        return norm.sort((a,b)=>String(a).localeCompare(String(b)));
-      }
-      if (typeof val === "object") {
-        const keys = Object.keys(val).sort();
-        const obj = {};
-        for (const k of keys) obj[k] = normalizeValue(val[k]);
-        return obj; // compare via JSON.stringify of normalized object
-      }
-      return val;
-    }
-    function eq(a,b) { return JSON.stringify(normalizeValue(a)) === JSON.stringify(normalizeValue(b)); }
+  const header = (out.shift() || []).map(h => h.trim());
+  const idx = Object.fromEntries(header.map((h,i)=>[h,i]));
+  const arr = out.filter(
+    r => r.length > 0 && r.some(x => x?.trim()?.length)
+  ).map(r=>{
+    const obj={}; header.forEach((h,j)=>obj[h]=(r[j]||"").trim());
+    return obj;
+  });
 
-    // JSON parser
-    function parseKEVJson(text) {
-      const data = JSON.parse(text);
-      const rows = Array.isArray(data) ? data : (Array.isArray(data.vulnerabilities) ? data.vulnerabilities : []);
-      const map = new Map();
-      for (const row of rows) {
-        const id = row.cveID || row.cveId || row.cve || row.CVE;
-        if (!id) continue;
-        map.set(String(id), row);
-      }
-      return map;
-    }
+  const idCol = ["cveID","cveId","cve","CVE","CVE_ID","cve_id"]
+    .find(k => k in idx) || "cveID";
 
-    // Robust CSV parser (quotes/commas/CRLF)
-    function parseCsv(text) {
-      const out = [];
-      let i=0, field="", row=[], inQ=false;
-      while (i<text.length) {
-        const c=text[i++];
-        if (inQ) {
-          if (c===`"`) {
-            if (text[i]===`"`) { field+=`"`; i++; } else { inQ=false; }
-          } else field+=c;
-        } else {
-          if (c===`,`) { row.push(field); field=""; }
-          else if (c===`\n`) { row.push(field); field=""; out.push(row); row=[]; }
-          else if (c===`\r`) { /* ignore */ }
-          else if (c===`"`) inQ=true;
-          else field+=c;
-        }
-      }
-      if (field.length || row.length) { row.push(field); out.push(row); }
-      const header = (out.shift() || []).map(h => h.trim());
-      const idx = Object.fromEntries(header.map((h, i)=>[h, i]));
-      const arr = out.filter(r => r.length>0 && r.some(x=>x?.trim()?.length)).map(r=>{
-        const obj={}; header.forEach((h,j)=>obj[h]= (r[j]||"").trim()); return obj;
-      });
-      const idCol = ["cveID","cveId","cve","CVE","CVE_ID","cve_id"].find(k => k in idx) || "cveID";
-      const map = new Map();
-      for (const row of arr) {
-        const id = row[idCol];
-        if (id) map.set(String(id), row);
-      }
-      return map;
-    }
+  const map = new Map();
+  for (const row of arr) {
+    const id = row[idCol];
+    if (id) map.set(String(id), row);
+  }
+  return map;
+}
 
-    /* ===== Diffing (per file; Option A ransomware boolean) ===== */
-    function diffRecords(currMap, prevMap, isJson=false) {
-      const changes = new Map(); // id -> [changes...]
+/* ===== Diffing ===== */
+function diffRecords(currMap, prevMap, isJson=false) {
+  const changes = new Map();
+  const ids = new Set([...currMap.keys(), ...prevMap.keys()]);
 
-      const ids = new Set([...currMap.keys(), ...prevMap.keys()]);
-      for (const id of ids) {
-        const c = currMap.get(id), p = prevMap.get(id);
+  for (const id of ids) {
+    const c = currMap.get(id), p = prevMap.get(id);
 
-        if (c && !p) { changes.set(id, [{type:"added"}]); continue; }
-        if (!c && p) { changes.set(id, [{type:"removed"}]); continue; }
+    if (c && !p) { changes.set(id, [{type:"added"}]); continue; }
+    if (!c && p) { changes.set(id, [{type:"removed"}]); continue; }
 
-        if (c && p) {
-          const entries = [];
+    if (c && p) {
+      const entries = [];
 
-          // Ransomware tag (knownRansomwareCampaignUse true/false)
-          const currRan = isJson ? Boolean(c.knownRansomwareCampaignUse) : null;
-          const prevRan = isJson ? Boolean(p.knownRansomwareCampaignUse) : null;
-          if (isJson && currRan !== prevRan) {
-            entries.push({ type:"ransom", field:"knownRansomwareCampaignUse", from: prevRan, to: currRan });
-          }
-
-          // Administrative changes: any other field change
-          const keys = new Set([...Object.keys(c), ...Object.keys(p)]);
-          for (const key of keys) {
-            if (key === "cveID" || key === "cveId" || key === "cve" || key === "CVE" || key === "knownRansomwareCampaignUse") continue;
-
-            const fromV = p ? p[key] : null;
-            const toV   = c ? c[key] : null;
-
-            if (!eq(fromV, toV)) {
-              entries.push({ type:"admin", field: key, from: displayVal(fromV), to: displayVal(toV) });
-            }
-          }
-
-          if (entries.length) changes.set(id, entries);
-        }
-      }
-      return changes;
-    }
-
-    function displayVal(v) {
-      if (v === null || v === undefined || (typeof v === "string" && v.trim()==="")) return "(empty)";
-      if (typeof v === "boolean") return v ? "true" : "false";
-      if (Array.isArray(v)) return v.length ? JSON.stringify(v) : "(empty)";
-      if (typeof v === "object") return JSON.stringify(v);
-      return String(v);
-    }
-
-    /* ===== Rendering ===== */
-    function chipsForFiles(flags) {
-      const arr = [];
-      if (flags.json) arr.push(`<span class="chip json">JSON</span>`);
-      if (flags.csv)  arr.push(`<span class="chip csv">CSV</span>`);
-      return arr.join(" ");
-    }
-    function summaryChips(changeMap) {
-      const types = new Set();
-      for (const arr of changeMap.values()) for (const ch of arr) types.add(ch.type);
-      const out = [];
-      if (types.has("added"))  out.push(`<span class="chip added">added</span>`);
-      if (types.has("removed")) out.push(`<span class="chip removed">removed</span>`);
-      if (types.has("ransom")) out.push(`<span class="chip ransom">ransomware changed</span>`);
-      if (types.has("admin"))  out.push(`<span class="chip admin">admin changed</span>`);
-      return out.join(" ");
-    }
-    function detailsList(changeMap) {
-      const items = [];
-      const ids = Array.from(changeMap.keys()).sort((a,b)=>String(a).localeCompare(String(b)));
-      for (const id of ids) {
-        const changes = changeMap.get(id);
-        for (const ch of changes) {
-          if (ch.type === "added") items.push(`<li class="mono">${id} — added</li>`);
-          else if (ch.type === "removed") items.push(`<li class="mono">${id} — removed</li>`);
-          else if (ch.type === "ransom") items.push(`<li class="mono">${id} — ransomware tag changed (${displayVal(ch.from)} → ${displayVal(ch.to)})</li>`);
-          else if (ch.type === "admin") items.push(`<li class="mono">${id} — admin change: ${ch.field} (${displayVal(ch.from)} → ${displayVal(ch.to)})</li>`);
-        }
-      }
-      if (!items.length) return "No CVE-level changes.";
-      return `<details><summary>View CVE details</summary><ul>${items.join("")}</ul></details>`;
-    }
-    function renderRow(commitTime, commitUrl, fileFlags, combinedChanges) {
-      const timeLink = commitUrl
-        ? `${commitUrl}<span class="mono">${fmt(commitTime)}</span></a>`
-        : `${fmt(commitTime)}`;
-
-      return `<tr>
-        <td>${timeLink}</td>
-        <td>${chipsForFiles(fileFlags)}</td>
-        <td>${summaryChips(combinedChanges) || "No changes"}</td>
-        <td>${detailsList(combinedChanges)}</td>
-      </tr>`;
-    }
-
-    /* ===== Date Range Handling ===== */
-    const rangeNote = document.getElementById("rangeNote");
-    const fromInput = document.getElementById("fromDate");
-    const toInput   = document.getElementById("toDate");
-    const applyBtn  = document.getElementById("applyRange");
-    const resetBtn  = document.getElementById("resetRange");
-
-    // Default: last 14 days
-    const DAY_MS = 24*60*60*1000;
-    function defaultRange() {
-      const now = new Date();
-      const to   = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // today at local midnight boundary
-      const from = new Date(to.getTime() - 14*DAY_MS);
-      return { from, to };
-    }
-    let currentRange = defaultRange();
-
-    function setFilterInputs(range) {
-      const toISO = d => new Date(d.getTime() - d.getTimezoneOffset()*60*1000).toISOString().slice(0,10);
-      fromInput.value = toISO(range.from);
-      toInput.value   = toISO(range.to);
-    }
-
-    applyBtn.onclick = async () => {
-      try {
-        const from = new Date(fromInput.value);
-        const to   = new Date(toInput.value);
-        if (isNaN(from) || isNaN(to)) throw new Error("Please select valid dates for both From and To.");
-        if (from > to) throw new Error("From date cannot be later than To date.");
-        currentRange = { from, to };
-        const spanDays = Math.ceil((to - from) / DAY_MS) + 1;
-        rangeNote.textContent = spanDays > 60
-          ? "Note: Loading a large date range may take additional time to process results."
-          : "";
-        await loadUnified(from, to);
-      } catch (e) {
-        rangeNote.textContent = e.message;
-      }
-    };
-
-    resetBtn.onclick = async () => {
-      currentRange = defaultRange();
-      setFilterInputs(currentRange);
-      rangeNote.textContent = "";
-      await loadUnified(currentRange.from, currentRange.to);
-    };
-
-    /* ===== Unified Loader (range-aware) ===== */
-    const rawCache = new Map(); // key: `${sha}:${path}` -> file text
-    async function cachedRawAt(sha, path) {
-      const key = `${sha}:${path}`;
-      if (rawCache.has(key)) return rawCache.get(key);
-      const text = await rawAt(sha, path);
-      rawCache.set(key, text);
-      return text;
-    }
-
-    function findPrevSha(history, sha) {
-      const idx = history.findIndex(c => c.sha === sha);
-      const prev = idx >= 0 ? history[idx+1] : null;
-      return prev ? prev.sha : null;
-    }
-
-    function mergeChangeMaps(baseMap, newMap) {
-      const merged = new Map(baseMap);
-      for (const [id, newList] of newMap.entries()) {
-        if (!merged.has(id)) {
-          merged.set(id, newList);
-        } else {
-          const existing = merged.get(id);
-          const combined = [...existing];
-          // De-duplicate identical entries (JSON + CSV overlap)
-          newList.forEach(entry => {
-            const serialized = JSON.stringify(entry);
-            const exists = existing.some(e => JSON.stringify(e) === serialized);
-            if (!exists) combined.push(entry);
-          });
-          merged.set(id, combined);
-        }
-      }
-      return merged;
-    }
-
-    function fmtISODate(d) {
-      return new Date(d).toISOString();
-    }
-
-    async function loadUnified(fromDate, toDate) {
-      const tbody = document.getElementById("timeline");
-      const updated = document.getElementById("updated");
-      tbody.innerHTML = `<tr><td colspan="4">Loading…</td></tr>`;
-
-      try {
-        // Decide pagination depth based on range length
-        const spanDays = Math.ceil((toDate - fromDate) / DAY_MS) + 1;
-        const needsDeepPaging = spanDays > 14;
-        const pagingPlan = {
-          perPage: 100,
-          maxPages: needsDeepPaging ? 10 : 2, // up to 1000 commits per file for large ranges
-          stopIfOlderThan: needsDeepPaging ? null : fromDate // stop early for default shorter ranges
-        };
-
-        // Fetch histories (rate-friendly)
-        const [jsonHist, csvHist] = await Promise.all([
-          listHistoryForPathPaged(PATHS.JSON, pagingPlan),
-          listHistoryForPathPaged(PATHS.CSV, pagingPlan)
-        ]);
-
-        // Build unified commit set with flags and urls
-        const bySha = new Map(); // sha -> { sha, time, url, flags:{json,csv} }
-        const addCommit = (c, isJson) => {
-          const sha = c.sha;
-          const time = c.commit?.author?.date || c.commit?.committer?.date;
-          const url  = c.html_url; // hyperlink to specific commit
-          if (!bySha.has(sha)) bySha.set(sha, { sha, time, url, flags: { json: false, csv: false } });
-          bySha.get(sha).flags[isJson ? "json" : "csv"] = true;
-        };
-        jsonHist.forEach(c => addCommit(c, true));
-        csvHist.forEach(c => addCommit(c, false));
-
-        // Sort newest first, then filter to selected range [fromDate..toDate]
-        const commits = Array.from(bySha.values()).sort((a,b)=> new Date(b.time) - new Date(a.time));
-        const inRange = commits.filter(c => {
-          const t = new Date(c.time).getTime();
-          return t >= fromDate.getTime() && t <= (toDate.getTime() + DAY_MS - 1);
+      const currRan = isJson ? Boolean(c.knownRansomwareCampaignUse) : null;
+      const prevRan = isJson ? Boolean(p.knownRansomwareCampaignUse) : null;
+      if (isJson && currRan !== prevRan) {
+        entries.push({
+          type:"ransom",
+          field:"knownRansomwareCampaignUse",
+          from: prevRan,
+          to: currRan
         });
-
-        // Compute diffs for touched files in-range (cached raw fetches)
-        const rows = [];
-        for (const item of inRange) {
-          let combined = new Map();
-
-          if (item.flags.json) {
-            const currText = await cachedRawAt(item.sha, PATHS.JSON);
-            const prevSha  = findPrevSha(jsonHist, item.sha);
-            const prevText = prevSha ? await cachedRawAt(prevSha, PATHS.JSON) : null;
-
-            const currMap = parseKEVJson(currText);
-            const prevMap = prevText ? parseKEVJson(prevText) : new Map();
-
-            const diffMap = diffRecords(currMap, prevMap, true);
-            combined = mergeChangeMaps(combined, diffMap);
-          }
-          if (item.flags.csv) {
-            const currText = await cachedRawAt(item.sha, PATHS.CSV);
-            const prevSha  = findPrevSha(csvHist, item.sha);
-            const prevText = prevSha ? await cachedRawAt(prevSha, PATHS.CSV) : null;
-
-            const currMap = parseCsv(currText);
-            const prevMap = prevText ? parseCsv(prevText) : new Map();
-
-            const diffMap = diffRecords(currMap, prevMap, false);
-            combined = mergeChangeMaps(combined, diffMap);
-          }
-
-          rows.push({ time: item.time, url: item.url, flags: item.flags, changes: combined });
-        }
-
-        // Render table
-        const tableRows = rows.map(r => renderRow(r.time, r.url, r.flags, r.changes));
-        tbody.innerHTML = tableRows.join("") || `<tr><td colspan="4">No JSON/CSV updates in the selected range.</td></tr>`;
-        updated.textContent = `Last updated: ${fmt(new Date())} — Range: ${fmt(fromDate)} → ${fmt(toDate)}`;
-
-        // Optional professional note for long ranges
-        if (needsDeepPaging) {
-          rangeNote.textContent = "Note: Loading extended date ranges may take additional time to process results.";
-        }
-      } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="4">Error loading updates: ${e.message}</td></tr>`;
       }
+
+      const keys = new Set([...Object.keys(c), ...Object.keys(p)]);
+      for (const key of keys) {
+        if (["cveID","cveId","cve","CVE","knownRansomwareCampaignUse"].includes(key))
+          continue;
+
+        const fromV = p ? p[key] : null;
+        const toV   = c ? c[key] : null;
+
+        if (!eq(fromV,toV)) {
+          entries.push({
+            type:"admin",
+            field: key,
+            from: displayVal(fromV),
+            to: displayVal(toV)
+          });
+        }
+      }
+
+      if (entries.length) changes.set(id, entries);
+    }
+  }
+  return changes;
+}
+
+function displayVal(v) {
+  if (v === null || v === undefined) return "(empty)";
+  if (typeof v === "boolean") return v ? "true" : "false";
+  if (Array.isArray(v)) return v.length ? JSON.stringify(v) : "(empty)";
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
+
+/* ===== Rendering ===== */
+function chipsForFiles(flags) {
+  const arr = [];
+  if (flags.json) arr.push(`<span class="chip json">JSON</span>`);
+  if (flags.csv)  arr.push(`<span class="chip csv">CSV</span>`);
+  return arr.join(" ");
+}
+function summaryChips(changeMap) {
+  const types = new Set();
+  for (const arr of changeMap.values())
+    for (const ch of arr) types.add(ch.type);
+  const out = [];
+  if (types.has("added"))  out.push(`<span class="chip added">added</span>`);
+  if (types.has("removed")) out.push(`<span class="chip removed">removed</span>`);
+  if (types.has("ransom")) out.push(`<span class="chip ransom">ransomware changed</span>`);
+  if (types.has("admin"))  out.push(`<span class="chip admin">admin changed</span>`);
+  return out.join(" ");
+}
+function detailsList(changeMap) {
+  const items = [];
+  const ids = Array.from(changeMap.keys()).sort((a,b)=>String(a).localeLocale(b));
+  for (const id of ids) {
+    const changes = changeMap.get(id);
+    for (const ch of changes) {
+      if      (ch.type === "added")    items.push(`<li class="mono">${id} — added</li>`);
+      else if (ch.type === "removed")  items.push(`<li class="mono">${id} — removed</li>`);
+      else if (ch.type === "ransom")   items.push(`<li class="mono">${id} — ransomware tag changed (${displayVal(ch.from)} → ${displayVal(ch.to)})</li>`);
+      else if (ch.type === "admin")    items.push(`<li class="mono">${id} — admin change: ${ch.field} (${displayVal(ch.from)} → ${displayVal(ch.to)})</li>`);
+    }
+  }
+  if (!items.length) return "No CVE-level changes.";
+  return `<details><summary>View CVE details</summary><ul>${items.join("")}</ul></details>`;
+}
+function renderRow(commitTime, commitUrl, fileFlags, combinedChanges) {
+  const timeLink = commitUrl
+    ? `${commitUrl}<span class="mono">${fmt(commitTime)}</span></a>`
+    : `${fmt(commitTime)}`;
+
+  return `<tr>
+    <td>${timeLink}</td>
+    <td>${chipsForFiles(fileFlags)}</td>
+    <td>${summaryChips(combinedChanges) || "No changes"}</td>
+    <td>${detailsList(combinedChanges)}</td>
+  </tr>`;
+}
+
+/* ===== Date Range ===== */
+const rangeNote = document.getElementById("rangeNote");
+const fromInput = document.getElementById("fromDate");
+const toInput   = document.getElementById("toDate");
+const applyBtn  = document.getElementById("applyRange");
+const resetBtn  = document.getElementById("resetRange");
+
+const DAY_MS = 86400000;
+function defaultRange() {
+  const now = new Date();
+  const to   = new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const from = new Date(to.getTime() - 14*DAY_MS);
+  return { from,to };
+}
+let currentRange = defaultRange();
+
+function setFilterInputs(range) {
+  const toISO = d =>
+    new Date(d.getTime() - d.getTimezoneOffset()*60000)
+      .toISOString()
+      .slice(0,10);
+  fromInput.value = toISO(range.from);
+  toInput.value   = toISO(range.to);
+}
+
+applyBtn.onclick = async () => {
+  try {
+    const from = new Date(fromInput.value);
+    const to   = new Date(toInput.value);
+    if (isNaN(from) || isNaN(to)) throw new Error("Please select valid dates.");
+    if (from > to) throw new Error("From date cannot be later than To date.");
+
+    currentRange = { from,to };
+
+    const spanDays = Math.ceil((to - from)/DAY_MS)+1;
+    rangeNote.textContent = spanDays > 60
+      ? "Note: Loading a large range may take additional time."
+      : "";
+
+    await loadUnified(from,to);
+  } catch (e) {
+    rangeNote.textContent = e.message;
+  }
+};
+resetBtn.onclick = async () => {
+  currentRange = defaultRange();
+  setFilterInputs(currentRange);
+  rangeNote.textContent = "";
+  await loadUnified(currentRange.from,currentRange.to);
+};
+
+/* ===== Unified Loader ===== */
+const rawCache = new Map();
+async function cachedRawAt(sha,path) {
+  const key = `${sha}:${path}`;
+  if (rawCache.has(key)) return rawCache.get(key);
+  const text = await rawAt(sha,path);
+  rawCache.set(key, text);
+  return text;
+}
+function findPrevSha(history, sha) {
+  const idx = history.findIndex(c => c.sha === sha);
+  const prev = idx >= 0 ? history[idx+1] : null;
+  return prev ? prev.sha : null;
+}
+function mergeChangeMaps(baseMap, newMap) {
+  const merged = new Map(baseMap);
+  for (const [id,newList] of newMap.entries()) {
+    if (!merged.has(id)) merged.set(id,newList);
+    else {
+      const existing = merged.get(id);
+      const combined = [...existing];
+      newList.forEach(entry => {
+        const serialized = JSON.stringify(entry);
+        const exists = existing.some(e => JSON.stringify(e) === serialized);
+        if (!exists) combined.push(entry);
+      });
+      merged.set(id, combined);
+    }
+  }
+  return merged;
+}
+
+async function loadUnified(fromDate, toDate) {
+  const tbody = document.getElementById("timeline");
+  const updated = document.getElementById("updated");
+
+  tbody.innerHTML = `<tr><td colspan="4">Loading…</td></tr>`;
+
+  try {
+    const spanDays = Math.ceil((toDate - fromDate)/DAY_MS)+1;
+    const needsDeepPaging = spanDays > 14;
+
+    const pagingPlan = {
+      perPage: 100,
+      maxPages: needsDeepPaging ? 10 : 2,
+      stopIfOlderThan: needsDeepPaging ? null : fromDate
+    };
+
+    const [jsonHist,csvHist] = await Promise.all([
+      listHistoryForPathPaged(PATHS.JSON,pagingPlan),
+      listHistoryForPathPaged(PATHS.CSV,pagingPlan)
+    ]);
+
+    const bySha = new Map();
+    const addCommit = (c,isJson)=>{
+      const sha = c.sha;
+      const time = c.commit?.author?.date || c.commit?.committer?.date;
+      const url  = c.html_url;
+      if (!bySha.has(sha))
+        bySha.set(sha,{ sha,time,url,flags:{ json:false, csv:false }});
+      bySha.get(sha).flags[isJson?"json":"csv"] = true;
+    };
+    jsonHist.forEach(c=>addCommit(c,true));
+    csvHist.forEach(c=>addCommit(c,false));
+
+    const commits = Array.from(bySha.values())
+      .sort((a,b)=>new Date(b.time) - new Date(a.time));
+    const inRange = commits.filter(c=>{
+      const t = new Date(c.time).getTime();
+      return t >= fromDate.getTime() &&
+             t <= (toDate.getTime() + DAY_MS - 1);
+    });
+
+    const rows = [];
+    for (const item of inRange) {
+      let combined = new Map();
+
+      if (item.flags.json) {
+        const currText = await cachedRawAt(item.sha, PATHS.JSON);
+        const prevSha  = findPrevSha(jsonHist, item.sha);
+        const prevText = prevSha ? await cachedRawAt(prevSha, PATHS.JSON) : null;
+
+        const currMap = parseKEVJson(currText);
+        const prevMap = prevText ? parseKEVJson(prevText) : new Map();
+
+        const diffMap = diffRecords(currMap,prevMap,true);
+        combined = mergeChangeMaps(combined,diffMap);
+      }
+      if (item.flags.csv) {
+        const currText = await cachedRawAt(item.sha, PATHS.CSV);
+        const prevSha  = findPrevSha(csvHist, item.sha);
+        const prevText = prevSha ? await cachedRawAt(prevSha, PATHS.CSV) : null;
+
+        const currMap = parseCsv(currText);
+        const prevMap = prevText ? parseCsv(prevText) : new Map();
+
+        const diffMap = diffRecords(currMap,prevMap,false);
+        combined = mergeChangeMaps(combined,diffMap);
+      }
+
+      rows.push({
+        time: item.time,
+        url: item.url,
+        flags: item.flags,
+        changes: combined
+      });
     }
 
-    // Initialize default range (last 14 days), set inputs, load
-    (async function init() {
-      currentRange = defaultRange();
-      setFilterInputs(currentRange);
-      await loadUnified(currentRange.from, currentRange.to);
-    })();
-  </script>
-</body>
+    const tableRows = rows.map(r =>
+      renderRow(r.time,r.url,r.flags,r.changes)
+    );
+
+    tbody.innerHTML =
+      tableRows.join("") ||
+      `<tr><td colspan="4">No JSON/CSV updates in this range.</td></tr>`;
+
+    updated.textContent =
+      `Last updated: ${fmt(new Date())} — Range: ${fmt(fromDate)} → ${fmt(toDate)}`;
+
+    if (needsDeepPaging) {
+      rangeNote.textContent =
+        "Note: Loading extended ranges may take additional time.";
+    }
+  } catch (e) {
+    tbody.innerHTML =
+      `<tr><td colspan="4">Error loading updates: ${e.message}</td></tr>`;
+  }
+}
+
+/* ===== Init ===== */
+(async function init() {
+  currentRange = defaultRange();
+  setFilterInputs(currentRange);
+  await loadUnified(currentRange.from,currentRange.to);
+})();
+</script>
+
+  
+  </body>
 </html>
