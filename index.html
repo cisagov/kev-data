@@ -380,16 +380,18 @@
       if (!items.length) return "No CVE-level changes.";
       return `<details><summary>View CVE details</summary><ul>${items.join("")}</ul></details>`;
     }
-    function renderRow(commitTime, commitUrl, fileFlags, combinedChanges) {
-    const timeLink = commitUrl
-      ? `<a href="${commitUrl}" class="mono">${fmt(commitTime)}</ao">${fmt(commitTime)}</span>`;
-    return `<tr>
-        <td>${timeLink}</td>
-        <td>${chipsForFiles(fileFlags)}</td>
-        <td>${summaryChips(combinedChanges) || "No changes"}</td>
-        <td>${detailsList(combinedChanges)}</td>
-      </tr>`;
-    }
+  function renderRow(commitTime, commitUrl, fileFlags, combinedChanges) {
+  const timeLink = commitUrl
+    ? `<a href="${commitUrl}" class="mono">${fmt(commitTime)}</aono">${fmt(commitTime)}</span>`;
+
+  return `<tr>
+    <td>${timeLink}</td>
+    <td>${chipsForFiles(fileFlags)}</td>
+    <td>${summaryChips(combinedChanges) || "No changes"}</td>
+    <td>${detailsList(combinedChanges)}</td>
+  </tr>`;
+  }
+
 
     /* ===== Date Range Handling ===== */
     const rangeNote = document.getElementById("rangeNote");
