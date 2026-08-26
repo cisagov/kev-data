@@ -65,6 +65,9 @@
       top: 16px;
       right: 24px;
     }
+
+    tbody a { color: var(--accent); text-decoration: none; }
+    tbody a:hover { text-decoration: underline; }
     
     /* Filter bar */
     .filter-bar {
@@ -400,16 +403,19 @@ function detailsList(changeMap) {
   if (!items.length) return "No CVE-level changes.";
   return `<details><summary>View CVE details</summary><ul>${items.join("")}</ul></details>`;
 }
-  function renderRow(commitTime, fileFlags, combinedChanges) {
+
+function renderRow(commitTime, commitUrl, fileFlags, combinedChanges) {
+  const safeUrl = commitUrl ? String(commitUrl) : "#";
   return `
     <tr>
-      <td>${commitTime}</td>
+      <td><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${commitTime}</a></td>
       <td>${chipsForFiles(fileFlags)}</td>
       <td>${summaryChips(combinedChanges) || "No changes"}</td>
       <td>${detailsList(combinedChanges)}</td>
     </tr>
   `;
 }
+
 
 /* ===== Date Range ===== */
 const rangeNote = document.getElementById("rangeNote");
@@ -571,8 +577,9 @@ async function loadUnified(fromDate, toDate) {
     }
 
     const tableRows = rows.map(r =>
-      renderRow(r.time, r.flags, r.changes)
-    );
+  renderRow(r.time, r.url, r.flags, r.changes)
+);
+
 
     tbody.innerHTML =
       tableRows.join("") ||
