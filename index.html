@@ -1,777 +1,630 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>KEV Commit History</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Favicon: shield-style professional icon (replace with official logo anytime). -->
-  <link
-    rel="icon"
-    type="image/svg+xml"
-    href='data:image/svg+xml;utf8,
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-          <defs>
-            <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="%230b5cad"/>
-              <stop offset="1" stop-color="%232d7bd1"/>
-            </linearGradient>
-          </defs>
-          <path fill="url(%23g)" d="M32 2l22 8v16c0 16-12 29-22 36-10-7-22-20-22-36V10l22-8z"/>
-          <path fill="white" d="M32 14l10 4v8c0 9-6 16-10 19-4-3-10-10-10-19v-8l10-4z"/>
-          <circle cx="32" cy="26" r="6" fill="%230b5cad"/>
-        </svg>'
-  />
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Explore recent changes to CISA's Known Exploited Vulnerabilities catalog.">
+  <title>KEV Change Log</title>
   <style>
     :root {
-      --bg: #ffffff;
-      --fg: #1c2733;
-      --muted: #5f6d7a;
-      --accent: #0b5cad;
-      --border: #d9dee3;
-      --row: #f7f9fb;
-      --chip-bg: #eef3f9;
-
-      --added: #0f7b28;
-      --removed: #b00020;
-      --ransom: #8a2be2;
-      --admin: #8a6d1c;
-
-      --csv: #0b5cad;
-      --json: #2d7bd1;
+      color-scheme: light;
+      --canvas: #f4f6f8;
+      --surface: #ffffff;
+      --surface-2: #f8fafb;
+      --ink: #16212d;
+      --muted: #5c6976;
+      --faint: #87929c;
+      --line: #dbe1e6;
+      --line-strong: #c8d0d8;
+      --navy: #12365b;
+      --blue: #1261a6;
+      --blue-soft: #eaf3fb;
+      --green: #08783e;
+      --green-soft: #e8f6ee;
+      --red: #b42318;
+      --red-soft: #fcede9;
+      --purple: #6e3cb1;
+      --purple-soft: #f2ecfa;
+      --amber: #895b08;
+      --amber-soft: #fbf1d8;
+      --shadow: 0 1px 2px rgba(10, 30, 50, .04), 0 8px 24px rgba(10, 30, 50, .06);
+      --radius: 14px;
     }
 
-    body.dark {
-      --bg: #0f141a;
-      --fg: #e8eef3;
-      --muted: #a0adb7;
-      --accent: #58a6ff;
-      --border: #2a3742;
-      --row: #111821;
-      --chip-bg: #0f253d;
-
-      --csv: #58a6ff;
-      --json: #8dbbff;
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --canvas: #0e151d;
+      --surface: #151f29;
+      --surface-2: #192530;
+      --ink: #edf3f7;
+      --muted: #a7b3bd;
+      --faint: #7f8d99;
+      --line: #2a3946;
+      --line-strong: #3a4b59;
+      --navy: #dceefe;
+      --blue: #72b8f3;
+      --blue-soft: #17334b;
+      --green: #6ed89d;
+      --green-soft: #163b2a;
+      --red: #ff948a;
+      --red-soft: #49231f;
+      --purple: #c6a2f5;
+      --purple-soft: #382650;
+      --amber: #efc46d;
+      --amber-soft: #41351c;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 12px 28px rgba(0, 0, 0, .18);
     }
 
     * { box-sizing: border-box; }
-
+    html { min-width: 320px; background: var(--canvas); }
     body {
       margin: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font: 15px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      min-height: 100vh;
+      background: var(--canvas);
+      color: var(--ink);
+      font: 14px/1.5 ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
+    button, input { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    a:hover { text-decoration-thickness: 2px; }
+    :focus-visible { outline: 3px solid color-mix(in srgb, var(--blue) 45%, transparent); outline-offset: 2px; }
 
-    header {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
+    .topbar {
+      background: var(--navy);
+      color: #fff;
+    }
+    :root[data-theme="dark"] .topbar { background: #101c27; border-bottom: 1px solid var(--line); }
+    .topbar-inner, main, .footer-inner { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    .topbar-inner {
+      min-height: 68px;
+      display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 24px clamp(16px, 5vw, 48px);
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(11,92,173,0.07), transparent);
-      position: relative;
+      justify-content: space-between;
+      gap: 20px;
     }
-
-    .brand { display: flex; align-items: center; gap: 12px; }
-
-    .brand-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      background: var(--row);
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark {
+      width: 34px;
+      height: 39px;
       display: grid;
       place-items: center;
-      border: 1px solid var(--border);
+      flex: 0 0 auto;
+      color: #12365b;
+      background: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: -.03em;
+      clip-path: polygon(50% 0, 96% 16%, 88% 73%, 50% 100%, 12% 73%, 4% 16%);
     }
-
-    .brand-icon svg { width: 24px; height: 24px; }
-
-    h1 { margin: 0; font-size: clamp(22px, 3vw, 30px); }
-
-    .sub { color: var(--muted); font-size: 14px; }
-
-    .controls {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      position: absolute;
-      top: 16px;
-      right: 24px;
-    }
-
-    .btn {
-      background: var(--row);
-      color: var(--fg);
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      border-radius: 8px;
+    .brand-name { font-size: 15px; font-weight: 760; letter-spacing: .01em; white-space: nowrap; }
+    .brand-meta { opacity: .68; font-size: 12px; white-space: nowrap; }
+    .icon-button {
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 10px;
+      color: #fff;
+      background: rgba(255,255,255,.08);
       cursor: pointer;
     }
+    .icon-button:hover { background: rgba(255,255,255,.15); }
 
-    .btn:hover { border-color: var(--accent); }
+    main { padding: 42px 0 56px; }
+    .intro { display: flex; justify-content: space-between; align-items: end; gap: 32px; margin-bottom: 24px; }
+    .eyebrow { margin: 0 0 7px; color: var(--blue); font-size: 12px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+    h1 { margin: 0; color: var(--navy); font-size: clamp(30px, 4vw, 44px); line-height: 1.08; letter-spacing: -.035em; }
+    .lede { max-width: 680px; margin: 12px 0 0; color: var(--muted); font-size: 15px; }
+    .source-link { flex: 0 0 auto; font-weight: 700; text-decoration: none; }
+    .source-link:hover { text-decoration: underline; }
 
-    main {
-      padding: 24px clamp(16px, 5vw, 48px);
-      display: grid;
-      gap: 24px;
-    }
-
-    tbody a { color: var(--accent); text-decoration: none; }
-    tbody a:hover { text-decoration: underline; }
-
-    /* Filter bar */
-    .filter-bar {
-      display: grid;
-      gap: 12px;
-      grid-template-columns: 1fr 1fr auto auto;
-      align-items: end;
-      padding: 12px;
-      border: 1px solid var(--border);
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+    .metric {
+      min-height: 92px;
+      padding: 17px 18px;
+      border: 1px solid var(--line);
       border-radius: 12px;
-      background: var(--row);
+      background: var(--surface);
+      box-shadow: 0 1px 2px rgba(10,30,50,.025);
     }
+    .metric-label { display: block; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .metric-value { display: block; margin-top: 5px; color: var(--navy); font-size: 24px; font-weight: 780; letter-spacing: -.03em; }
+    .metric-value.small { padding-top: 4px; font-size: 16px; letter-spacing: -.01em; }
 
-    .filter-bar label { font-size: 13px; color: var(--muted); }
-
-    .filter-bar input[type="date"] {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--bg);
-      color: var(--fg);
+    .panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+    .filters { display: grid; grid-template-columns: auto 1fr auto; gap: 18px; align-items: end; padding: 17px 18px; margin-bottom: 18px; }
+    .field-row { display: flex; gap: 10px; align-items: end; }
+    label { display: grid; gap: 5px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+    input[type="date"], input[type="search"] {
+      height: 40px;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      background: var(--surface-2);
+      color: var(--ink);
+      padding: 0 11px;
     }
-
-    .disclaimer { grid-column: 1 / -1; font-size: 12px; color: var(--muted); }
-
-    section {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      background: var(--bg);
+    input[type="search"] { width: 100%; min-width: 180px; }
+    .presets { display: flex; gap: 4px; padding: 3px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); }
+    .preset, .button {
+      min-height: 34px;
+      border: 0;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: 740;
     }
+    .preset { padding: 0 12px; color: var(--muted); background: transparent; }
+    .preset:hover { color: var(--ink); }
+    .preset[aria-pressed="true"] { color: var(--blue); background: var(--surface); box-shadow: 0 1px 4px rgba(10,30,50,.10); }
+    .button { height: 40px; padding: 0 17px; color: #fff; background: var(--blue); }
+    .button:hover { filter: brightness(.94); }
+    .button:disabled { opacity: .55; cursor: wait; }
 
-    .section-header {
-      background: var(--row);
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-    }
+    .timeline-head { min-height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 13px 18px; border-bottom: 1px solid var(--line); }
+    h2 { margin: 0; color: var(--navy); font-size: 17px; letter-spacing: -.01em; }
+    .status { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+    .status[data-kind="error"] { color: var(--red); }
+    .search-wrap { width: min(300px, 40%); }
 
-    .updated { color: var(--muted); font-size: 13px; }
+    .loading { padding: 42px 20px; text-align: center; color: var(--muted); }
+    .spinner { width: 24px; height: 24px; margin: 0 auto 10px; border: 3px solid var(--line); border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 1.8s; } }
 
-    .table-wrap { overflow-x: auto; }
+    .commit-list { list-style: none; margin: 0; padding: 0; }
+    .commit { display: grid; grid-template-columns: 166px minmax(0, 1fr); border-bottom: 1px solid var(--line); }
+    .commit:last-child { border-bottom: 0; }
+    .commit-time { padding: 20px 18px; border-right: 1px solid var(--line); background: var(--surface-2); }
+    .commit-time time { display: block; color: var(--ink); font-weight: 750; }
+    .commit-time span { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
+    .commit-body { min-width: 0; padding: 17px 20px 18px; }
+    .commit-top { display: flex; justify-content: space-between; gap: 16px; align-items: start; }
+    .commit-title { margin: 0; font-size: 14px; font-weight: 720; }
+    .commit-title a { color: var(--ink); text-decoration: none; }
+    .commit-title a:hover { color: var(--blue); text-decoration: underline; }
+    .sha { color: var(--faint); font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .badge { display: inline-flex; align-items: center; min-height: 25px; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 780; }
+    .badge.added { color: var(--green); background: var(--green-soft); }
+    .badge.removed { color: var(--red); background: var(--red-soft); }
+    .badge.ransom { color: var(--purple); background: var(--purple-soft); }
+    .badge.admin { color: var(--amber); background: var(--amber-soft); }
+    .badge.file { color: var(--blue); background: var(--blue-soft); }
+    details { margin-top: 13px; }
+    summary { width: fit-content; color: var(--blue); cursor: pointer; font-size: 12px; font-weight: 730; }
+    .changes { display: grid; gap: 7px; margin: 11px 0 0; padding: 0; list-style: none; }
+    .change { padding: 9px 11px; border-left: 3px solid var(--line-strong); border-radius: 0 7px 7px 0; background: var(--surface-2); overflow-wrap: anywhere; }
+    .change.added { border-left-color: var(--green); }
+    .change.removed { border-left-color: var(--red); }
+    .change.ransom { border-left-color: var(--purple); }
+    .cve { margin-right: 6px; color: var(--ink); font: 700 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .change-copy { color: var(--muted); font-size: 12px; }
+    .empty { padding: 44px 20px; text-align: center; color: var(--muted); }
 
-    table { width: 100%; border-collapse: collapse; }
-
-    thead th {
-      text-align: left;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    tbody td {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-    }
-
-    tbody tr:nth-child(even) { background: var(--row); }
-
-    .mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
-
-    .chip {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 12px;
-      background: var(--chip-bg);
-      border: 1px solid var(--border);
-      margin-right: 6px;
-    }
-
-    .chip.csv { color: var(--csv); border-color: var(--csv); }
-    .chip.json { color: var(--json); border-color: var(--json); }
-    .chip.added { color: var(--added); border-color: var(--added); }
-    .chip.removed { color: var(--removed); border-color: var(--removed); }
-    .chip.ransom { color: var(--ransom); border-color: var(--ransom); }
-    .chip.admin { color: var(--admin); border-color: var(--admin); }
-
-    details { margin-top: 8px; border-left: 3px solid var(--border); padding-left: 12px; }
-    summary { cursor: pointer; color: var(--accent); }
-    ul { margin: 8px 0 0 20px; }
-
-    footer {
-      padding: 16px clamp(16px, 5vw, 48px);
-      color: var(--muted);
-      border-top: 1px solid var(--border);
-    }
+    footer { border-top: 1px solid var(--line); color: var(--muted); background: var(--surface); }
+    .footer-inner { min-height: 74px; display: flex; align-items: center; justify-content: space-between; gap: 20px; font-size: 12px; }
+    .footer-inner p { margin: 0; }
 
     @media (max-width: 820px) {
-      header { grid-template-columns: 1fr auto; }
-      .filter-bar { grid-template-columns: 1fr 1fr; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .filters { grid-template-columns: 1fr; align-items: stretch; }
+      .field-row { justify-content: space-between; }
+      .field-row label { flex: 1; }
+      input[type="date"] { width: 100%; }
+      .presets { justify-self: start; }
+      .button { width: 100%; }
+    }
+    @media (max-width: 620px) {
+      .topbar-inner, main, .footer-inner { width: min(100% - 24px, 1180px); }
+      .brand-meta, .source-link { display: none; }
+      main { padding-top: 28px; }
+      .intro { margin-bottom: 20px; }
+      .metrics { gap: 8px; }
+      .metric { min-height: 80px; padding: 13px 14px; }
+      .metric-value { font-size: 21px; }
+      .metric-value.small { font-size: 14px; }
+      .field-row { display: grid; grid-template-columns: 1fr 1fr; }
+      .timeline-head { align-items: stretch; flex-direction: column; }
+      .search-wrap { width: 100%; }
+      .commit { grid-template-columns: 1fr; }
+      .commit-time { display: flex; gap: 7px; align-items: baseline; padding: 12px 16px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .commit-time span { margin: 0; }
+      .commit-body { padding: 15px 16px 17px; }
+      .footer-inner { align-items: flex-start; flex-direction: column; justify-content: center; padding: 16px 0; gap: 5px; }
     }
   </style>
 </head>
-
 <body>
-  <header>
-    <div class="brand">
-      <div class="brand-icon" aria-hidden="true">
-        <!-- Header icon (shield) -->
-        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img">
-          <defs>
-            <linearGradient id="gh" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#0b5cad" />
-              <stop offset="1" stop-color="#2d7bd1" />
-            </linearGradient>
-          </defs>
-          <path fill="url(#gh)" d="M32 2l22 8v16c0 16-12 29-22 36-10-7-22-20-22-36V10l22-8z" />
-          <path fill="white" d="M32 14l10 4v8c0 9-6 16-10 19-4-3-10-10-10-19v-8l10-4z" />
-          <circle cx="32" cy="26" r="6" fill="#0b5cad" />
-        </svg>
-      </div>
-
-      <div>
-        <h1>KEV Commit History</h1>
-        <div class="sub">
-          Unified JSON/CSV commit view, CVE diffs (Added/Removed/Ransomware/Admin), last 14 days by default.
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">KEV</div>
+        <div>
+          <div class="brand-name">Known Exploited Vulnerabilities</div>
+          <div class="brand-meta">Change intelligence from CISA’s public catalog</div>
         </div>
       </div>
-    </div>
-
-    <div class="controls">
-      <button id="themeToggle" class="btn" aria-label="Toggle theme">🌙 / 🌞</button>
+      <button class="icon-button" id="themeToggle" type="button" aria-label="Use dark theme" title="Change theme">☾</button>
     </div>
   </header>
 
   <main>
-    <!-- FILTER BAR -->
-    <div class="filter-bar" role="region" aria-label="Date range filters">
+    <section class="intro" aria-labelledby="pageTitle">
       <div>
-        <label for="fromDate">From</label>
-        <input id="fromDate" type="date" />
+        <p class="eyebrow">Catalog activity</p>
+        <h1 id="pageTitle">KEV change log</h1>
+        <p class="lede">See what entered, left, or changed in the catalog—without comparing raw files by hand.</p>
       </div>
+      <a class="source-link" href="https://github.com/cisagov/kev-data" target="_blank" rel="noopener noreferrer">View source on GitHub ↗</a>
+    </section>
 
-      <div>
-        <label for="toDate">To</label>
-        <input id="toDate" type="date" />
+    <section class="metrics" aria-label="Change summary">
+      <div class="metric"><span class="metric-label">Commits</span><strong class="metric-value" id="metricCommits">—</strong></div>
+      <div class="metric"><span class="metric-label">CVEs added</span><strong class="metric-value" id="metricAdded">—</strong></div>
+      <div class="metric"><span class="metric-label">Field changes</span><strong class="metric-value" id="metricChanged">—</strong></div>
+      <div class="metric"><span class="metric-label">Latest activity</span><strong class="metric-value small" id="metricLatest">—</strong></div>
+    </section>
+
+    <section class="panel filters" aria-label="Date range filters">
+      <div class="field-row">
+        <label>From <input id="fromDate" type="date"></label>
+        <label>To <input id="toDate" type="date"></label>
       </div>
+      <div class="presets" aria-label="Quick date ranges">
+        <button class="preset" type="button" data-days="14" aria-pressed="true">14 days</button>
+        <button class="preset" type="button" data-days="30" aria-pressed="false">30 days</button>
+        <button class="preset" type="button" data-days="90" aria-pressed="false">90 days</button>
+      </div>
+      <button class="button" id="applyRange" type="button">Update timeline</button>
+    </section>
 
-      <button id="applyRange" class="btn">Apply Date Range</button>
-      <button id="resetRange" class="btn">Reset to Last 14 Days</button>
-
-      <div id="rangeNote" class="disclaimer"></div>
-    </div>
-
-    <!-- UNIFIED TIMELINE -->
-    <section>
-      <div class="section-header">
+    <section class="panel" aria-labelledby="timelineTitle">
+      <div class="timeline-head">
         <div>
-          <strong>Commits in Selected Range</strong>
-          <div id="updated" class="updated"></div>
+          <h2 id="timelineTitle">Catalog updates</h2>
+          <p class="status" id="status" role="status" aria-live="polite">Preparing timeline…</p>
+        </div>
+        <div class="search-wrap">
+          <input id="search" type="search" placeholder="Filter by CVE or field…" aria-label="Filter timeline by CVE or field" disabled>
         </div>
       </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Commit Time</th>
-              <th>Files Changed</th>
-              <th>Summary</th>
-              <th>Details (per CVE)</th>
-            </tr>
-          </thead>
-
-          <tbody id="timeline">
-            <tr><td colspan="4">Loading…</td></tr>
-          </tbody>
-        </table>
+      <div id="timeline" aria-busy="true">
+        <div class="loading"><div class="spinner" aria-hidden="true"></div>Loading catalog activity…</div>
       </div>
     </section>
   </main>
 
-  <footer>Data loads live from GitHub on each view.</footer>
+  <footer>
+    <div class="footer-inner">
+      <p>Data is loaded directly from the public <a href="https://github.com/cisagov/kev-data" target="_blank" rel="noopener noreferrer">CISA KEV repository</a>.</p>
+      <p id="refreshed">Not yet refreshed</p>
+    </div>
+  </footer>
 
   <script>
-    const OWNER = "cisagov";
-    const REPO  = "kev-data";
-    const PATHS = {
-      JSON: "known_exploited_vulnerabilities.json",
-      CSV:  "known_exploited_vulnerabilities.csv"
+    "use strict";
+
+    const REPO = "https://api.github.com/repos/cisagov/kev-data";
+    const RAW = "https://raw.githubusercontent.com/cisagov/kev-data";
+    const FILES = {
+      json: "known_exploited_vulnerabilities.json",
+      csv: "known_exploited_vulnerabilities.csv"
+    };
+    const DAY = 86_400_000;
+    const memoryCache = new Map();
+    let rows = [];
+    let activeLoad = 0;
+
+    const $ = id => document.getElementById(id);
+    const els = {
+      from: $("fromDate"), to: $("toDate"), apply: $("applyRange"), search: $("search"),
+      timeline: $("timeline"), status: $("status"), refreshed: $("refreshed"),
+      commits: $("metricCommits"), added: $("metricAdded"), changed: $("metricChanged"), latest: $("metricLatest")
     };
 
-    /* ===== Theme ===== */
-    const themeBtn = document.getElementById("themeToggle");
-    const saved = localStorage.getItem("theme") || "light";
-    if (saved === "dark") document.body.classList.add("dark");
-    themeBtn.onclick = () => {
-      document.body.classList.toggle("dark");
-      localStorage.setItem(
-        "theme",
-        document.body.classList.contains("dark") ? "dark" : "light"
-      );
-    };
+    function localISO(date) {
+      const d = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+      return d.toISOString().slice(0, 10);
+    }
+    function rangeFor(days) {
+      const to = new Date();
+      to.setHours(0, 0, 0, 0);
+      return { from: new Date(to.getTime() - (days - 1) * DAY), to };
+    }
+    function readRange() {
+      const from = new Date(`${els.from.value}T00:00:00`);
+      const to = new Date(`${els.to.value}T23:59:59.999`);
+      if (!Number.isFinite(from.getTime()) || !Number.isFinite(to.getTime())) throw new Error("Choose a valid start and end date.");
+      if (from > to) throw new Error("The start date must be before the end date.");
+      if ((to - from) / DAY > 3650) throw new Error("Choose a range of 10 years or less.");
+      return { from, to };
+    }
 
-    const fmt = d => new Date(d).toLocaleString(undefined, { hour12: false });
-
-    /* ===== GitHub Helpers ===== */
     async function fetchJSON(url) {
-      const r = await fetch(url);
-      if (!r.ok) throw new Error(`${r.status} ${url}`);
-      return r.json();
+      const response = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+      if (!response.ok) throw new Error(response.status === 403 ? "GitHub’s request limit was reached. Please try again shortly." : `GitHub returned ${response.status}.`);
+      return response.json();
     }
-
     async function fetchText(url) {
-      const r = await fetch(url);
-      if (!r.ok) throw new Error(`${r.status} ${url}`);
-      return r.text();
-    }
-
-    async function listHistoryForPathPaged(path, { perPage = 100, maxPages = 2, stopIfOlderThan = null }) {
-      const results = [];
-      for (let page = 1; page <= maxPages; page++) {
-        const url = `https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${encodeURIComponent(path)}&per_page=${perPage}&page=${page}`;
-        const batch = await fetchJSON(url);
-
-        if (!Array.isArray(batch) || batch.length === 0) break;
-        results.push(...batch);
-
-        if (stopIfOlderThan) {
-          const oldest = batch[batch.length - 1];
-          const oldestDate = new Date(oldest.commit?.author?.date || oldest.commit?.committer?.date);
-          if (oldestDate < stopIfOlderThan) break;
-        }
-
-        if (batch.length < perPage) break;
+      if (!memoryCache.has(url)) {
+        memoryCache.set(url, fetch(url).then(response => {
+          if (!response.ok) throw new Error(`A catalog snapshot returned ${response.status}.`);
+          return response.text();
+        }).catch(error => { memoryCache.delete(url); throw error; }));
       }
-      return results;
+      return memoryCache.get(url);
     }
 
-    async function rawAt(sha, path) {
-      return fetchText(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${sha}/${path}`);
-    }
-
-    /* ===== Parsing ===== */
-    function normalizeValue(val) {
-      if (val === undefined || val === null) return null;
-
-      if (typeof val === "string") {
-        const s = val.trim();
-        return s.length ? s.replace(/\s+/g, " ") : null;
+    async function historyFor(path, oldestDate) {
+      const all = [];
+      for (let page = 1; page <= 10; page++) {
+        const batch = await fetchJSON(`${REPO}/commits?path=${encodeURIComponent(path)}&per_page=100&page=${page}`);
+        if (!batch.length) break;
+        all.push(...batch);
+        const oldest = new Date(batch.at(-1).commit.author?.date || batch.at(-1).commit.committer?.date);
+        if (oldest < oldestDate || batch.length < 100) break;
       }
+      return all;
+    }
 
-      if (typeof val === "number" || typeof val === "boolean") return val;
-
-      if (Array.isArray(val)) {
-        const norm = val.map(v => normalizeValue(v)).filter(v => v !== null);
-        return norm.sort((a, b) => String(a).localeCompare(String(b)));
+    function parseJSON(text) {
+      const parsed = JSON.parse(text);
+      const data = Array.isArray(parsed) ? parsed : parsed.vulnerabilities || [];
+      return new Map(data.filter(item => item.cveID).map(item => [String(item.cveID), item]));
+    }
+    function parseCSV(text) {
+      const table = [];
+      let row = [], field = "", quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (quoted) {
+          if (char === '"' && text[i + 1] === '"') { field += '"'; i++; }
+          else if (char === '"') quoted = false;
+          else field += char;
+        } else if (char === '"') quoted = true;
+        else if (char === ",") { row.push(field); field = ""; }
+        else if (char === "\n") { row.push(field); table.push(row); row = []; field = ""; }
+        else if (char !== "\r") field += char;
       }
-
-      if (typeof val === "object") {
-        const keys = Object.keys(val).sort();
-        const obj = {};
-        for (const k of keys) obj[k] = normalizeValue(val[k]);
-        return obj;
+      if (field || row.length) { row.push(field); table.push(row); }
+      const headers = table.shift() || [];
+      const result = new Map();
+      for (const cells of table) {
+        const record = Object.fromEntries(headers.map((key, index) => [key.trim(), (cells[index] || "").trim()]));
+        const id = record.cveID || record.cveId || record.CVE;
+        if (id) result.set(String(id), record);
       }
-
-      return val;
+      return result;
     }
-
-    function eq(a, b) {
-      return JSON.stringify(normalizeValue(a)) === JSON.stringify(normalizeValue(b));
+    function stable(value) {
+      if (value == null) return null;
+      if (typeof value === "string") return value.trim().replace(/\s+/g, " ") || null;
+      if (Array.isArray(value)) return value.map(stable).sort((a, b) => String(a).localeCompare(String(b)));
+      if (typeof value === "object") return Object.fromEntries(Object.keys(value).sort().map(key => [key, stable(value[key])]));
+      return value;
     }
-
-    /* JSON Parser */
-    function parseKEVJson(text) {
-      const data = JSON.parse(text);
-      const rows = Array.isArray(data)
-        ? data
-        : (Array.isArray(data.vulnerabilities) ? data.vulnerabilities : []);
-
-      const map = new Map();
-      for (const row of rows) {
-        const id = row.cveID || row.cveId || row.cve || row.CVE;
-        if (!id) continue;
-        map.set(String(id), row);
-      }
-      return map;
+    function same(a, b) { return JSON.stringify(stable(a)) === JSON.stringify(stable(b)); }
+    function display(value) {
+      if (value == null || value === "") return "empty";
+      if (typeof value === "object") return JSON.stringify(value);
+      return String(value);
     }
-
-    /* CSV Parser */
-    function parseCsv(text) {
-      const out = [];
-      let i = 0, field = "", row = [], inQ = false;
-
-      while (i < text.length) {
-        const c = text[i++];
-
-        if (inQ) {
-          if (c === `"`) {
-            if (text[i] === `"`) { field += `"`; i++; }
-            else { inQ = false; }
-          } else field += c;
-        } else {
-          if (c === `,`) { row.push(field); field = ""; }
-          else if (c === `\n`) { row.push(field); field = ""; out.push(row); row = []; }
-          else if (c === `\r`) {}
-          else if (c === `"`) inQ = true;
-          else field += c;
-        }
-      }
-
-      if (field.length || row.length) { row.push(field); out.push(row); }
-
-      const header = (out.shift() || []).map(h => h.trim());
-      const idx = Object.fromEntries(header.map((h, i) => [h, i]));
-
-      const arr = out
-        .filter(r => r.length > 0 && r.some(x => x?.trim()?.length))
-        .map(r => {
-          const obj = {};
-          header.forEach((h, j) => obj[h] = (r[j] || "").trim());
-          return obj;
-        });
-
-      const idCol = ["cveID", "cveId", "cve", "CVE", "CVE_ID", "cve_id"].find(k => k in idx) || "cveID";
-
-      const map = new Map();
-      for (const row of arr) {
-        const id = row[idCol];
-        if (id) map.set(String(id), row);
-      }
-      return map;
+    function ransom(value) {
+      const normalized = String(value || "").trim().toLowerCase();
+      return normalized === "known" ? "Known" : normalized === "unknown" ? "Unknown" : "empty";
     }
-
-    /* ===== Diffing ===== */
-    function normalizeRansomEnum(v) {
-      if (v === undefined || v === null) return null;
-      const s = String(v).trim().toLowerCase();
-      if (!s) return null;
-      if (s === "known") return "Known";
-      if (s === "unknown") return "Unknown";
-      return null;
-    }
-
-    function displayRansomEnum(v) {
-      if (v === "Known") return "Known";
-      if (v === "Unknown") return "Unknown";
-      return "(empty)";
-    }
-
-    function diffRecords(currMap, prevMap, isJson = false) {
-      const changes = new Map();
-      const ids = new Set([...currMap.keys(), ...prevMap.keys()]);
-
+    function diff(current, previous) {
+      const changes = [];
+      const ids = new Set([...current.keys(), ...previous.keys()]);
       for (const id of ids) {
-        const c = currMap.get(id), p = prevMap.get(id);
-
-        if (c && !p) { changes.set(id, [{ type: "added" }]); continue; }
-        if (!c && p) { changes.set(id, [{ type: "removed" }]); continue; }
-
-        if (c && p) {
-          const entries = [];
-
-          // FIX: Detect ransomware change for BOTH JSON and CSV (Known/Unknown strings)
-          const currRan = normalizeRansomEnum(c.knownRansomwareCampaignUse);
-          const prevRan = normalizeRansomEnum(p.knownRansomwareCampaignUse);
-          if (currRan !== prevRan) {
-            entries.push({
-              type: "ransom",
-              field: "knownRansomwareCampaignUse",
-              from: prevRan,
-              to: currRan
-            });
-          }
-
-          const keys = new Set([...Object.keys(c), ...Object.keys(p)]);
-          for (const key of keys) {
-            if (["cveID", "cveId", "cve", "CVE", "knownRansomwareCampaignUse"].includes(key)) continue;
-
-            const fromV = p ? p[key] : null;
-            const toV   = c ? c[key] : null;
-
-            if (!eq(fromV, toV)) {
-              entries.push({
-                type: "admin",
-                field: key,
-                from: displayVal(fromV),
-                to: displayVal(toV)
-              });
-            }
-          }
-
-          if (entries.length) changes.set(id, entries);
+        const now = current.get(id), before = previous.get(id);
+        if (now && !before) { changes.push({ id, type: "added", copy: "Added to the catalog" }); continue; }
+        if (!now && before) { changes.push({ id, type: "removed", copy: "Removed from the catalog" }); continue; }
+        const nowRansom = ransom(now.knownRansomwareCampaignUse);
+        const beforeRansom = ransom(before.knownRansomwareCampaignUse);
+        if (nowRansom !== beforeRansom) changes.push({ id, type: "ransom", copy: `Ransomware use: ${beforeRansom} → ${nowRansom}` });
+        const keys = new Set([...Object.keys(now), ...Object.keys(before)]);
+        for (const field of keys) {
+          if (["cveID", "cveId", "cve", "CVE", "knownRansomwareCampaignUse"].includes(field)) continue;
+          if (!same(now[field], before[field])) changes.push({ id, type: "admin", copy: `${field}: ${display(before[field])} → ${display(now[field])}` });
         }
       }
       return changes;
     }
 
-    function displayVal(v) {
-      if (v === null || v === undefined) return "(empty)";
-      if (typeof v === "boolean") return v ? "true" : "false";
-      if (Array.isArray(v)) return v.length ? JSON.stringify(v) : "(empty)";
-      if (typeof v === "object") return JSON.stringify(v);
-      return String(v);
-    }
-
-    /* ===== Rendering ===== */
-    function chipsForFiles(flags) {
-      const arr = [];
-      if (flags.json) arr.push(`<span class="chip json">JSON</span>`);
-      if (flags.csv)  arr.push(`<span class="chip csv">CSV</span>`);
-      return arr.join(" ");
-    }
-
-    function summaryChips(changeMap) {
-      const types = new Set();
-      for (const arr of changeMap.values())
-        for (const ch of arr) types.add(ch.type);
-
-      const out = [];
-      if (types.has("added"))  out.push(`<span class="chip added">added</span>`);
-      if (types.has("removed")) out.push(`<span class="chip removed">removed</span>`);
-      if (types.has("ransom")) out.push(`<span class="chip ransom">ransomware changed</span>`);
-      if (types.has("admin"))  out.push(`<span class="chip admin">admin changed</span>`);
-      return out.join(" ");
-    }
-
-    function detailsList(changeMap) {
-      const items = [];
-      const ids = Array.from(changeMap.keys()).sort((a, b) => String(a).localeCompare(String(b)));
-
-      for (const id of ids) {
-        const changes = changeMap.get(id);
-        for (const ch of changes) {
-          if (ch.type === "added")
-            items.push(`<li class="mono">${id} — added</li>`);
-          else if (ch.type === "removed")
-            items.push(`<li class="mono">${id} — removed</li>`);
-          else if (ch.type === "ransom")
-            items.push(`<li class="mono">${id} — ransomware tag changed (${displayRansomEnum(ch.from)} → ${displayRansomEnum(ch.to)})</li>`);
-          else if (ch.type === "admin")
-            items.push(`<li class="mono">${id} — admin change: ${ch.field} (${displayVal(ch.from)} → ${displayVal(ch.to)})</li>`);
-        }
-      }
-
-      if (!items.length) return "No CVE-level changes.";
-      return `<details><summary>View CVE details</summary><ul>${items.join("")}</ul></details>`;
-    }
-
-    function renderRow(commitTime, commitUrl, fileFlags, combinedChanges) {
-      const safeUrl = commitUrl ? String(commitUrl) : "#";
-      return `
-        <tr>
-          <td><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${commitTime}</a></td>
-          <td>${chipsForFiles(fileFlags)}</td>
-          <td>${summaryChips(combinedChanges) || "No changes"}</td>
-          <td>${detailsList(combinedChanges)}</td>
-        </tr>
-      `;
-    }
-
-    /* ===== Date Range ===== */
-    const rangeNote = document.getElementById("rangeNote");
-    const fromInput = document.getElementById("fromDate");
-    const toInput   = document.getElementById("toDate");
-    const applyBtn  = document.getElementById("applyRange");
-    const resetBtn  = document.getElementById("resetRange");
-    const DAY_MS = 86400000;
-
-    function defaultRange() {
-      const now = new Date();
-      const to   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const from = new Date(to.getTime() - 14 * DAY_MS);
-      return { from, to };
-    }
-
-    let currentRange = defaultRange();
-
-    function setFilterInputs(range) {
-      const toISO = d =>
-        new Date(d.getTime() - d.getTimezoneOffset() * 60000)
-          .toISOString()
-          .slice(0, 10);
-
-      fromInput.value = toISO(range.from);
-      toInput.value   = toISO(range.to);
-    }
-
-    applyBtn.onclick = async () => {
-      try {
-        const from = new Date(fromInput.value);
-        const to   = new Date(toInput.value);
-
-        if (isNaN(from) || isNaN(to)) throw new Error("Please select valid dates.");
-        if (from > to) throw new Error("From date cannot be later than To date.");
-
-        currentRange = { from, to };
-
-        const spanDays = Math.ceil((to - from) / DAY_MS) + 1;
-        rangeNote.textContent = spanDays > 60
-          ? "Note: Loading a large range may take additional time."
-          : "";
-
-        await loadUnified(from, to);
-      } catch (e) {
-        rangeNote.textContent = e.message;
-      }
-    };
-
-    resetBtn.onclick = async () => {
-      currentRange = defaultRange();
-      setFilterInputs(currentRange);
-      rangeNote.textContent = "";
-      await loadUnified(currentRange.from, currentRange.to);
-    };
-
-    /* ===== Unified Loader ===== */
-    const rawCache = new Map();
-
-    async function cachedRawAt(sha, path) {
-      const key = `${sha}:${path}`;
-      if (rawCache.has(key)) return rawCache.get(key);
-      const text = await rawAt(sha, path);
-      rawCache.set(key, text);
-      return text;
-    }
-
-    function findPrevSha(history, sha) {
-      const idx = history.findIndex(c => c.sha === sha);
-      const prev = idx >= 0 ? history[idx + 1] : null;
-      return prev ? prev.sha : null;
-    }
-
-    function mergeChangeMaps(baseMap, newMap) {
-      const merged = new Map(baseMap);
-      for (const [id, newList] of newMap.entries()) {
-        if (!merged.has(id)) merged.set(id, newList);
-        else {
-          const existing = merged.get(id);
-          const combined = [...existing];
-          newList.forEach(entry => {
-            const serialized = JSON.stringify(entry);
-            const exists = existing.some(e => JSON.stringify(e) === serialized);
-            if (!exists) combined.push(entry);
-          });
-          merged.set(id, combined);
-        }
-      }
-      return merged;
-    }
-
-    async function loadUnified(fromDate, toDate) {
-      const tbody = document.getElementById("timeline");
-      const updated = document.getElementById("updated");
-      tbody.innerHTML = `<tr><td colspan="4">Loading…</td></tr>`;
-
-      try {
-        const spanDays = Math.ceil((toDate - fromDate) / DAY_MS) + 1;
-        const needsDeepPaging = spanDays > 14;
-
-        const pagingPlan = {
-          perPage: 100,
-          maxPages: needsDeepPaging ? 10 : 2,
-          stopIfOlderThan: needsDeepPaging ? null : fromDate
-        };
-
-        const [jsonHist, csvHist] = await Promise.all([
-          listHistoryForPathPaged(PATHS.JSON, pagingPlan),
-          listHistoryForPathPaged(PATHS.CSV, pagingPlan)
-        ]);
-
-        const bySha = new Map();
-
-        const addCommit = (c, isJson) => {
-          const sha = c.sha;
-          const time = c.commit?.author?.date || c.commit?.committer?.date;
-          const url  = c.html_url;
-
-          if (!bySha.has(sha))
-            bySha.set(sha, { sha, time, url, flags: { json: false, csv: false } });
-
-          bySha.get(sha).flags[isJson ? "json" : "csv"] = true;
-        };
-
-        jsonHist.forEach(c => addCommit(c, true));
-        csvHist.forEach(c => addCommit(c, false));
-
-        const commits = Array.from(bySha.values())
-          .sort((a, b) => new Date(b.time) - new Date(a.time));
-
-        const inRange = commits.filter(c => {
-          const t = new Date(c.time).getTime();
-          return t >= fromDate.getTime() && t <= (toDate.getTime() + DAY_MS - 1);
+    function mergeHistories(jsonHistory, csvHistory) {
+      const merged = new Map();
+      const add = (commit, format) => {
+        if (!merged.has(commit.sha)) merged.set(commit.sha, {
+          sha: commit.sha,
+          time: commit.commit.author?.date || commit.commit.committer?.date,
+          url: commit.html_url,
+          message: (commit.commit.message || "Catalog update").split("\n")[0],
+          formats: new Set()
         });
-
-        const rows = [];
-
-        for (const item of inRange) {
-          let combined = new Map();
-
-          if (item.flags.json) {
-            const currText = await cachedRawAt(item.sha, PATHS.JSON);
-            const prevSha  = findPrevSha(jsonHist, item.sha);
-            const prevText = prevSha ? await cachedRawAt(prevSha, PATHS.JSON) : null;
-
-            const currMap = parseKEVJson(currText);
-            const prevMap = prevText ? parseKEVJson(prevText) : new Map();
-
-            const diffMap = diffRecords(currMap, prevMap, true);
-            combined = mergeChangeMaps(combined, diffMap);
-          }
-
-          if (item.flags.csv) {
-            const currText = await cachedRawAt(item.sha, PATHS.CSV);
-            const prevSha  = findPrevSha(csvHist, item.sha);
-            const prevText = prevSha ? await cachedRawAt(prevSha, PATHS.CSV) : null;
-
-            const currMap = parseCsv(currText);
-            const prevMap = prevText ? parseCsv(prevText) : new Map();
-
-            const diffMap = diffRecords(currMap, prevMap, false);
-            combined = mergeChangeMaps(combined, diffMap);
-          }
-
-          rows.push({
-            time: item.time,
-            url: item.url,
-            flags: item.flags,
-            changes: combined
-          });
+        merged.get(commit.sha).formats.add(format);
+      };
+      jsonHistory.forEach(commit => add(commit, "json"));
+      csvHistory.forEach(commit => add(commit, "csv"));
+      return [...merged.values()].sort((a, b) => new Date(b.time) - new Date(a.time));
+    }
+    function previousSha(history, sha) {
+      const index = history.findIndex(commit => commit.sha === sha);
+      return index >= 0 ? history[index + 1]?.sha : null;
+    }
+    async function mapLimited(items, limit, worker, onProgress) {
+      const results = new Array(items.length);
+      let cursor = 0, completed = 0;
+      async function run() {
+        while (cursor < items.length) {
+          const index = cursor++;
+          results[index] = await worker(items[index], index);
+          onProgress?.(++completed, items.length);
         }
+      }
+      await Promise.all(Array.from({ length: Math.min(limit, items.length) }, run));
+      return results;
+    }
 
-        const tableRows = rows.map(r => renderRow(r.time, r.url, r.flags, r.changes));
+    function node(tag, className, text) {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text != null) element.textContent = text;
+      return element;
+    }
+    function badge(type, text) { return node("span", `badge ${type}`, text); }
+    function counts(changes) {
+      return changes.reduce((acc, item) => ((acc[item.type] = (acc[item.type] || 0) + 1), acc), {});
+    }
+    function renderCommit(row) {
+      const li = node("li", "commit");
+      li.dataset.search = row.changes.map(change => `${change.id} ${change.copy}`).join(" ").toLowerCase();
+      const date = new Date(row.time);
+      const timeBox = node("div", "commit-time");
+      const time = node("time", "", date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }));
+      time.dateTime = row.time;
+      timeBox.append(time, node("span", "", date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })));
 
-        tbody.innerHTML =
-          tableRows.join("") ||
-          `<tr><td colspan="4">No JSON/CSV updates in this range.</td></tr>`;
+      const body = node("div", "commit-body");
+      const top = node("div", "commit-top");
+      const title = node("p", "commit-title");
+      const link = node("a", "", row.message);
+      link.href = row.url; link.target = "_blank"; link.rel = "noopener noreferrer";
+      title.append(link);
+      top.append(title, node("span", "sha", row.sha.slice(0, 7)));
+      const badges = node("div", "badges");
+      for (const format of row.formats) badges.append(badge("file", format.toUpperCase()));
+      const summary = counts(row.changes);
+      if (summary.added) badges.append(badge("added", `${summary.added} added`));
+      if (summary.removed) badges.append(badge("removed", `${summary.removed} removed`));
+      if (summary.ransom) badges.append(badge("ransom", `${summary.ransom} ransomware`));
+      if (summary.admin) badges.append(badge("admin", `${summary.admin} field ${summary.admin === 1 ? "change" : "changes"}`));
+      body.append(top, badges);
 
-        updated.textContent =
-          `Last updated: ${fmt(new Date())} — Range: ${fmt(fromDate)} → ${fmt(toDate)}`;
-
-        if (needsDeepPaging) {
-          rangeNote.textContent = "Note: Loading extended ranges may take additional time.";
+      if (row.changes.length) {
+        const details = document.createElement("details");
+        const summaryEl = document.createElement("summary");
+        summaryEl.textContent = `Review ${row.changes.length} ${row.changes.length === 1 ? "change" : "changes"}`;
+        const list = node("ul", "changes");
+        for (const change of row.changes) {
+          const item = node("li", `change ${change.type}`);
+          item.append(node("span", "cve", change.id), node("span", "change-copy", change.copy));
+          list.append(item);
         }
-      } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="4">Error loading updates: ${e.message}</td></tr>`;
+        details.append(summaryEl, list); body.append(details);
+      }
+      li.append(timeBox, body);
+      return li;
+    }
+    function render(filter = "") {
+      const query = filter.trim().toLowerCase();
+      const shown = query ? rows.filter(row => row.searchText.includes(query)) : rows;
+      els.timeline.replaceChildren();
+      if (!shown.length) {
+        els.timeline.append(node("div", "empty", query ? "No changes match this filter." : "No catalog updates were found in this date range."));
+      } else {
+        const list = node("ol", "commit-list");
+        shown.forEach(row => list.append(renderCommit(row)));
+        els.timeline.append(list);
+      }
+      els.timeline.setAttribute("aria-busy", "false");
+    }
+    function updateMetrics() {
+      const all = rows.flatMap(row => row.changes);
+      els.commits.textContent = rows.length.toLocaleString();
+      els.added.textContent = all.filter(change => change.type === "added").length.toLocaleString();
+      els.changed.textContent = all.filter(change => change.type === "admin" || change.type === "ransom").length.toLocaleString();
+      els.latest.textContent = rows.length ? new Date(rows[0].time).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "No activity";
+    }
+
+    async function load() {
+      const loadId = ++activeLoad;
+      let range;
+      try { range = readRange(); }
+      catch (error) { els.status.textContent = error.message; els.status.dataset.kind = "error"; return; }
+      els.apply.disabled = true;
+      els.search.disabled = true;
+      els.search.value = "";
+      els.timeline.setAttribute("aria-busy", "true");
+      els.timeline.replaceChildren(node("div", "loading", "Loading commit history…"));
+      els.status.textContent = "Loading commit history…";
+      els.status.dataset.kind = "";
+
+      try {
+        const historyCutoff = new Date(range.from.getTime() - DAY);
+        const [jsonHistory, csvHistory] = await Promise.all([
+          historyFor(FILES.json, historyCutoff), historyFor(FILES.csv, historyCutoff)
+        ]);
+        if (loadId !== activeLoad) return;
+        const commits = mergeHistories(jsonHistory, csvHistory).filter(item => {
+          const time = new Date(item.time);
+          return time >= range.from && time <= range.to;
+        });
+        els.status.textContent = commits.length ? `Comparing 0 of ${commits.length} catalog snapshots…` : "No updates in this date range.";
+
+        const compared = await mapLimited(commits, 5, async commit => {
+          const format = commit.formats.has("json") ? "json" : "csv";
+          const history = format === "json" ? jsonHistory : csvHistory;
+          const beforeSha = previousSha(history, commit.sha);
+          if (!beforeSha) return { ...commit, changes: [] };
+          const [currentText, previousText] = await Promise.all([
+            fetchText(`${RAW}/${commit.sha}/${FILES[format]}`),
+            fetchText(`${RAW}/${beforeSha}/${FILES[format]}`)
+          ]);
+          const parser = format === "json" ? parseJSON : parseCSV;
+          return { ...commit, changes: diff(parser(currentText), parser(previousText)) };
+        }, (done, total) => {
+          if (loadId === activeLoad) els.status.textContent = `Comparing ${done} of ${total} catalog snapshots…`;
+        });
+        if (loadId !== activeLoad) return;
+        rows = compared.map(row => ({ ...row, searchText: row.changes.map(change => `${change.id} ${change.type} ${change.copy}`).join(" ").toLowerCase() }));
+        render();
+        updateMetrics();
+        els.search.disabled = false;
+        els.status.textContent = `${rows.length} ${rows.length === 1 ? "commit" : "commits"} from ${range.from.toLocaleDateString()} to ${range.to.toLocaleDateString()}`;
+        els.refreshed.textContent = `Refreshed ${new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}`;
+      } catch (error) {
+        if (loadId !== activeLoad) return;
+        els.timeline.replaceChildren(node("div", "empty", "The timeline could not be loaded. Please try again."));
+        els.timeline.setAttribute("aria-busy", "false");
+        els.status.textContent = error.message;
+        els.status.dataset.kind = "error";
+      } finally {
+        if (loadId === activeLoad) els.apply.disabled = false;
       }
     }
 
-    /* ===== Init ===== */
-    (async function init() {
-      currentRange = defaultRange();
-      setFilterInputs(currentRange);
-      await loadUnified(currentRange.from, currentRange.to);
-    })();
+    document.querySelectorAll(".preset").forEach(button => button.addEventListener("click", () => {
+      const range = rangeFor(Number(button.dataset.days));
+      els.from.value = localISO(range.from); els.to.value = localISO(range.to);
+      document.querySelectorAll(".preset").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
+      load();
+    }));
+    [els.from, els.to].forEach(input => input.addEventListener("change", () => {
+      document.querySelectorAll(".preset").forEach(item => item.setAttribute("aria-pressed", "false"));
+    }));
+    els.apply.addEventListener("click", load);
+    els.search.addEventListener("input", event => render(event.target.value));
+
+    const themeToggle = $("themeToggle");
+    const savedTheme = (() => { try { return localStorage.getItem("kev-theme"); } catch { return null; } })();
+    const preferredTheme = savedTheme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    function setTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      themeToggle.textContent = theme === "dark" ? "☀" : "☾";
+      themeToggle.setAttribute("aria-label", `Use ${theme === "dark" ? "light" : "dark"} theme`);
+    }
+    setTheme(preferredTheme);
+    themeToggle.addEventListener("click", () => {
+      const theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      try { localStorage.setItem("kev-theme", theme); } catch {}
+      setTheme(theme);
+    });
+
+    const initial = rangeFor(14);
+    els.from.value = localISO(initial.from); els.to.value = localISO(initial.to);
+    load();
   </script>
 </body>
 </html>
